@@ -3,10 +3,19 @@ window.onload = main;
 function main() {
     var params = "username=Citery&stats=1&rated=1";
     var output = document.querySelector("#XMLOutput");
+    var game_ratings = {};
 
     getBGGCollection(params)
     .then(data => {
-        var stopper = 0;
+        var parser = new DOMParser();
+        var doc = parser.parseFromString(data, "text/xml");
+        var games = doc.getElementsByTagName("item");
+        for(game of games) {
+            var name = game.getElementsByTagName("name")[0].innerHTML;
+            var rating = game.getElementsByTagName("rating")[0].getAttribute("value");
+            game_ratings[name] = parseFloat(rating);
+        }
+        var stop = 0;
     });
 }
 
