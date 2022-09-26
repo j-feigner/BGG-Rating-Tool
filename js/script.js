@@ -1,10 +1,12 @@
+var REQUEST_MAX = 10;
+
 window.onload = main;
 
 function main() {
     var params = ["username=Citery&stats=1&rated=1",
-                  "username=JoshuaStarr&stats=1&rated=1"];
+                  "username=DroppEcho&stats=1&rated=1"];
 
-    Promise.all(params.map(string => getBGGCollection(string)))
+    Promise.all(params.map(string => getBGGCollection(string, 0)))
     .then(xml_data_sets => {
         return Promise.all(xml_data_sets.map(data => parseRatings(data)));
     })
@@ -38,23 +40,38 @@ function main() {
 
         var stop = 0;
     })
+    .catch(error => {
+        console.log(error);
+    })
+}
+
+// Attempts to fetch BGG user data, returns true if user exists
+function checkValidBGGUser(username) {
+    return fetch("https://boardgamegeek.com/xmlapi2/user?name=" + username)
+    .then(response => response.text())
+    .then(data => {
+        var parser = new DOMParser();
+        var doc = parser.parseFromString(data, "text/xml");
+        var user = doc.getElementsByTagName("user")[0].getAttribute("id");
+        return user == "" ? false : true;
+    })
 }
 
 // Returns a Promise that resolves to an XML string of a user's collection data from BGG
 // Repeated fetches are required due to BGG's collection export system
-function getBGGCollection(params) {
+function getBGGCollection(params, request_attempt) {
     // Attempt to fetch user data
     return fetch("https://boardgamegeek.com/xmlapi2/collection?" + params)
     .then(response => {
-        // If data is not loaded, wait two seconds and try again (recursive)
+        // If data is waiting to load (BGG batch), retry in 10sec
         if(response.status == 202) {
             return new Promise(resolve => {
                 setTimeout(() => {
-                    resolve(getBGGCollection(params))
-                }, 2000)
+                    resolve(getBGGCollection(params, request_attempt++));
+                }, 10000)
             })
         // If data is loaded, return response text
-        } else if (response.status == 200) {
+        } else if(response.status == 200) {
             return response.text();
         }
     })
