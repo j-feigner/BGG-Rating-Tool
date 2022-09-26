@@ -1,22 +1,43 @@
 window.onload = main;
 
 function main() {
-    var params = "username=Citery&stats=1&rated=1";
-    var output = document.querySelector("#XMLOutput");
-    var game_ratings = {};
+    var params = ["username=Citery&stats=1&rated=1",
+                  "username=JoshuaStarr&stats=1&rated=1"];
 
-    getBGGCollection(params)
-    .then(data => {
-        var parser = new DOMParser();
-        var doc = parser.parseFromString(data, "text/xml");
-        var games = doc.getElementsByTagName("item");
-        for(game of games) {
-            var name = game.getElementsByTagName("name")[0].innerHTML;
-            var rating = game.getElementsByTagName("rating")[0].getAttribute("value");
-            game_ratings[name] = parseFloat(rating);
-        }
+    Promise.all(params.map(string => getBGGCollection(string)))
+    .then(xml_data_sets => {
+        return Promise.all(xml_data_sets.map(data => parseRatings(data)));
+    })
+    .then(ratings_data => {
+        var user1 = ratings_data[0];
+        var user2 = ratings_data[1];
+
+        var common_games = findCommonGames(user1, user2);
+
+        var list1 = createTrimmedRatings(user1, common_games);
+        var list2 = createTrimmedRatings(user2, common_games);
+
+        var deltas = {};
+        Object.keys(list1).forEach(game => {
+            deltas[game] = list1[game] - list2[game];
+        })
+
+        var mean1 = mean(Object.values(list1));
+        var spread1 = Object.values(list1).map(num => num - mean1);
+        var mean2 = mean(Object.values(list2));
+        var spread2 = Object.values(list2).map(num => num - mean2);
+
+        var spread_mult = spread1.map((val, i) => val * spread2[i]);
+
+        var covariance = (sum(spread_mult)) / (Object.keys(list1).length - 1);
+
+        var dev1 = stdDev(Object.values(list1));
+        var dev2 = stdDev(Object.values(list2));
+
+        var r = covariance / (dev1 * dev2);
+
         var stop = 0;
-    });
+    })
 }
 
 // Returns a Promise that resolves to an XML string of a user's collection data from BGG
@@ -37,4 +58,60 @@ function getBGGCollection(params) {
             return response.text();
         }
     })
+}
+
+// Returns object of all game:rating pairs from BGG User collection data
+function parseRatings(collection_xml) {
+    var ratings = {};
+    var parser = new DOMParser();
+    var doc = parser.parseFromString(collection_xml, "text/xml");
+    var games = doc.getElementsByTagName("item");
+    for(game of games) {
+        var name = game.getElementsByTagName("name")[0].innerHTML;
+        var rating = game.getElementsByTagName("rating")[0].getAttribute("value");
+        ratings[name] = parseFloat(rating);
+    }
+    return ratings;
+}
+
+// Returns array of game titles that appear in both ratings objects
+function findCommonGames(ratings1, ratings2) {
+    var common = [];
+    for(game in ratings1) {
+        if(game in ratings2) {
+            common.push(game);
+        }
+    }
+    return common;
+}
+
+// Returns a new game:rating object with only common_games
+function createTrimmedRatings(ratings, common_games) {
+    var trim = {};
+    common_games.forEach(game => {
+        trim[game] = ratings[game];
+    }) 
+    return trim;
+}
+
+// Returns sum of array of numbers
+function sum(array) {
+    var sum = 0;
+    array.forEach(element => sum += element);
+    return sum;
+}
+
+// Returns mean of array of numbers (ratings, in this case)
+function mean(array) {
+    var sum = 0;
+    array.forEach(element => sum += element);
+    return sum / array.length;
+}
+
+// Returns sample standard deviation from given array of numbers
+function stdDev(array) {
+    var arr_mean = mean(array);
+    var spread = array.map(val => Math.pow(val - arr_mean, 2));
+    var spread_sum = sum(spread);
+    return Math.sqrt(spread_sum / (array.length - 1))
 }
