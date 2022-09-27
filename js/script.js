@@ -3,57 +3,72 @@ var REQUEST_MAX = 10;
 window.onload = main;
 
 function main() {
-    var params = ["username=Citery&stats=1&rated=1",
-                  "username=DroppEcho&stats=1&rated=1"];
+    var input1 = document.getElementById("user1");
+    var input2 = document.getElementById("user2");
+    var submit = document.getElementById("submit");
 
-    Promise.all(params.map(string => getBGGCollection(string, 0)))
-    .then(xml_data_sets => {
-        return Promise.all(xml_data_sets.map(data => parseRatings(data)));
-    })
-    .then(ratings_data => {
-        var user1 = ratings_data[0];
-        var user2 = ratings_data[1];
+    var output = document.querySelector(".r-output");
 
-        var common_games = findCommonGames(user1, user2);
-
-        var list1 = createTrimmedRatings(user1, common_games);
-        var list2 = createTrimmedRatings(user2, common_games);
-
-        var deltas = {};
-        Object.keys(list1).forEach(game => {
-            deltas[game] = list1[game] - list2[game];
+    submit.addEventListener("click", e => {
+        var users = [input1.value, input2.value];
+        // Check both inputs for valid users
+        Promise.all(users.map(user => checkValidBGGUser(user)))
+        // If valid (not caught), fetch user collection data as XML
+        .then(users => {
+            var params = users.map(user => "?username=" + user + "&stats=1&rated=1");
+            return Promise.all(params.map(string => getBGGCollection(string, 0)));
         })
-
-        var mean1 = mean(Object.values(list1));
-        var spread1 = Object.values(list1).map(num => num - mean1);
-        var mean2 = mean(Object.values(list2));
-        var spread2 = Object.values(list2).map(num => num - mean2);
-
-        var spread_mult = spread1.map((val, i) => val * spread2[i]);
-
-        var covariance = (sum(spread_mult)) / (Object.keys(list1).length - 1);
-
-        var dev1 = stdDev(Object.values(list1));
-        var dev2 = stdDev(Object.values(list2));
-
-        var r = covariance / (dev1 * dev2);
-
-        var stop = 0;
-    })
-    .catch(error => {
-        console.log(error);
+        // Extract relevant ratings data
+        .then(xml_data_sets => {
+            return Promise.all(xml_data_sets.map(data => parseRatings(data)));
+        })
+        // Calculate correlation coefficient from ratings data
+        .then(ratings_data => {
+            var user1 = ratings_data[0];
+            var user2 = ratings_data[1];
+    
+            var common_games = findCommonGames(user1, user2);
+    
+            var list1 = createTrimmedRatings(user1, common_games);
+            var list2 = createTrimmedRatings(user2, common_games);
+    
+            var deltas = {};
+            Object.keys(list1).forEach(game => {
+                deltas[game] = list1[game] - list2[game];
+            })
+    
+            var mean1 = mean(Object.values(list1));
+            var spread1 = Object.values(list1).map(num => num - mean1);
+            var mean2 = mean(Object.values(list2));
+            var spread2 = Object.values(list2).map(num => num - mean2);
+    
+            var spread_mult = spread1.map((val, i) => val * spread2[i]);
+    
+            var covariance = (sum(spread_mult)) / (Object.keys(list1).length - 1);
+    
+            var dev1 = stdDev(Object.values(list1));
+            var dev2 = stdDev(Object.values(list2));
+    
+            var r = covariance / (dev1 * dev2);
+    
+            output.innerHTML = r;
+        })
+        .catch(error => {
+            alert(error + ". Please try again");
+        })
     })
 }
 
-// Attempts to fetch BGG user data, returns true if user exists
+// Attempts to fetch BGG user data
+// If user exits
 function checkValidBGGUser(username) {
     return fetch("https://boardgamegeek.com/xmlapi2/user?name=" + username)
     .then(response => response.text())
     .then(data => {
         var parser = new DOMParser();
         var doc = parser.parseFromString(data, "text/xml");
-        var user = doc.getElementsByTagName("user")[0].getAttribute("id");
-        return user == "" ? false : true;
+        var user = doc.getElementsByTagName("user")[0].getAttribute("name");
+        return user == "" ? Promise.reject("User does not exist") : Promise.resolve(user);
     })
 }
 
@@ -61,7 +76,7 @@ function checkValidBGGUser(username) {
 // Repeated fetches are required due to BGG's collection export system
 function getBGGCollection(params, request_attempt) {
     // Attempt to fetch user data
-    return fetch("https://boardgamegeek.com/xmlapi2/collection?" + params)
+    return fetch("https://boardgamegeek.com/xmlapi2/collection" + params)
     .then(response => {
         // If data is waiting to load (BGG batch), retry in 10sec
         if(response.status == 202) {
