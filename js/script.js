@@ -15,6 +15,7 @@ function main() {
         Promise.all(users.map(user => checkValidBGGUser(user)))
         // If valid (not caught), fetch user collection data as XML
         .then(users => {
+            output.innerHTML = "Fetching collections (this can take some time with large collections)..."
             var params = users.map(user => "?username=" + user + "&stats=1&rated=1");
             return Promise.all(params.map(string => getBGGCollection(string, 0)));
         })
@@ -78,12 +79,12 @@ function getBGGCollection(params, request_attempt) {
     // Attempt to fetch user data
     return fetch("https://boardgamegeek.com/xmlapi2/collection" + params)
     .then(response => {
-        // If data is waiting to load (BGG batch), retry in 10sec
+        // If data is waiting to load (BGG batch), retry with exponential back off
         if(response.status == 202) {
             return new Promise(resolve => {
                 setTimeout(() => {
                     resolve(getBGGCollection(params, request_attempt++));
-                }, 10000)
+                }, 500 * Math.pow(2, request_attempt))
             })
         // If data is loaded, return response text
         } else if(response.status == 200) {
