@@ -7,10 +7,13 @@ function main() {
     var input2 = document.getElementById("user2");
     var submit = document.getElementById("submit");
 
+    var table = document.querySelector(".games-table tbody");
+
     var output = document.querySelector(".r-output");
 
     submit.addEventListener("click", e => {
         var users = [input1.value, input2.value];
+        table.innerHTML = "";
         // Check both inputs for valid users
         Promise.all(users.map(user => checkValidBGGUser(user)))
         // If valid (not caught), fetch user collection data as XML
@@ -32,6 +35,8 @@ function main() {
     
             var list1 = createTrimmedRatings(user1, common_games);
             var list2 = createTrimmedRatings(user2, common_games);
+
+            populateRatingsTable(table, list1, list2);
     
             var deltas = {};
             Object.keys(list1).forEach(game => {
@@ -55,7 +60,7 @@ function main() {
             output.innerHTML = r;
         })
         .catch(error => {
-            alert(error + ". Please try again");
+            alert(error);
         })
     })
 }
@@ -84,7 +89,7 @@ function getBGGCollection(params, request_attempt) {
             return new Promise(resolve => {
                 setTimeout(() => {
                     resolve(getBGGCollection(params, request_attempt++));
-                }, 500 * Math.pow(2, request_attempt))
+                }, 5000 * Math.pow(2, request_attempt))
             })
         // If data is loaded, return response text
         } else if(response.status == 200) {
@@ -125,6 +130,16 @@ function createTrimmedRatings(ratings, common_games) {
         trim[game] = ratings[game];
     }) 
     return trim;
+}
+
+function populateRatingsTable(table, l1, l2) {
+    for(game in l1) {
+        var row = table.insertRow();
+        row.insertCell().innerHTML = game;
+        row.insertCell().innerHTML = l1[game];
+        row.insertCell().innerHTML = l2[game];
+        row.insertCell().innerHTML = l1[game] - l2[game];
+    }
 }
 
 // Returns sum of array of numbers
