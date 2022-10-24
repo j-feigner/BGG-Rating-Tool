@@ -240,7 +240,7 @@ function compareUsers(users) {
 
         var r = covariance / (dev1 * dev2);
 
-        output.innerHTML = r;
+        output.innerHTML = "Correlation over " + spread1.length + " games: " + r;
     })
 }
 

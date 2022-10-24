@@ -5,19 +5,36 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title></title>
         <link rel="stylesheet" href="css/style.css">
+
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@100;200;500&display=swap" rel="stylesheet">
     </head>
     <body>
         <div class="site-wrapper">
             <div class="app-container">
                 <div class="title">
-                    <h1>BoardGameGeek Ratings Tool</h1>
+                    <h1>BGG Rating Correlation Tool</h1>
                 </div>
-                <label for="user1">User 1:</label>
-                <input type="text" id="user1">
-                <label for="user2">User 2:</label>
-                <input type="text" id="user2">
-                <button id="submit">Submit</button>
-
+                <div class="tagline">
+                    <p>How does your taste in board games align with others?</p>
+                </div>
+                <div class="arbitrary-output">
+                    
+                </div>
+                <div class="input-row">
+                    <div class="input-label-pair">
+                        <label for="user1"></label>
+                        <input type="text" id="user1" placeholder="Your BGG username...">
+                    </div>
+                    <div class="input-label-pair">
+                        <label for="user2"></label>
+                        <input type="text" id="user2" placeholder="Another BGG username...">
+                    </div>
+                </div>
+                <div class="submit-container">
+                    <button id="submit">SUBMIT</button>
+                </div>
                 <div class="games-table-container">
                     <table class="games-table">
                         <thead>
