@@ -8,52 +8,81 @@
 
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@100;200;500&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@200&family=Roboto:wght@300&display=swap" rel="stylesheet">
     </head>
     <body>
         <div class="site-wrapper">
-            <div class="app-container">
-                <div class="title">
-                    <h1>BGG Rating Correlation Tool</h1>
-                </div>
-                <div class="tagline">
-                    <p>How does your taste in board games align with others?</p>
-                </div>
-                <div class="arbitrary-output">
-                    
-                </div>
-                <div class="input-row">
-                    <div class="input-label-pair">
-                        <label for="user1"></label>
-                        <input type="text" id="user1" placeholder="Your BGG username...">
+            <div class="input-block">
+                <div class="input-flex-container">
+                    <div class="title">
+                        <h1>BGG Rating Correlation Tool</h1>
                     </div>
-                    <div class="input-label-pair">
-                        <label for="user2"></label>
-                        <input type="text" id="user2" placeholder="Another BGG username...">
+                    <div class="input-row">
+                        <div class="input-label-pair">
+                            <label for="user1"></label>
+                            <input type="text" id="user1" placeholder="Your BGG username...">
+                        </div>
+                        <div class="input-label-pair">
+                            <label for="user2"></label>
+                            <input type="text" id="user2" placeholder="Another BGG username...">
+                        </div>
                     </div>
                 </div>
                 <div class="submit-container">
                     <button id="submit">SUBMIT</button>
                 </div>
-                <div class="games-table-container">
-                    <table class="games-table">
-                        <thead>
-                            <tr class="table-headers">
-                                <th scope="col">Game</th>
-                                <th scope="col">User 1</th>
-                                <th scope="col">User 2</th>
-                                <th scope="col">Delta</th>
-                            </tr>
-                        </thead>
-                        <tbody>
+            </div>
+            <div class="r-output"></div>
+            <div class="games-table-container">
+                <table class="games-table">
+                    <thead>
+                        <tr class="table-headers">
+                            <th scope="col">Game</th>
+                            <th scope="col">User 1</th>
+                            <th scope="col">User 2</th>
+                            <th scope="col">Delta</th>
+                        </tr>
+                    </thead>
+                    <tbody>
 
-                        </tbody>
-                    </table>
+                    </tbody>
+                </table>
+            </div>
+            <div class="app-info-block">
+                <div class="app-info-flex-container">
+                    <div id="how-to-use" class="app-info-subsection">
+                        <h2>How to use this tool :</h2>
+                        <ol>
+                            <li>Enter your BGG username into the first field.</li>
+                            <li>Enter another BGG username into the second field.</li>
+                            <li>Hit submit, wait while BGG collection data is gathered, and a <span class="colored-text">correlation coefficient</span> will be calculated from the results.</li>
+                        </ol>
+                    </div>
+                    <div id="correlation-help" class="app-info-subsection">
+                        <h2>What is a correlation coefficient?</h2>
+                        <p>A correlation coefficient, usually called <i>r</i>, is a value between -1 and 1 that represents how strong of a relationship exists between two variables.</p>
+                        <p>If <i>r</i> is close to 1, this represents a strong <i>positive</i> relationship between the two variables. When one is high the other tends to be high as well.</p>
+                        <p>If <i>r</i> is close to -1, this represents a strong <i>negative</i> relationship between the two variables. When one is high the other tends to <i>low</i> instead.</p>
+                        <p>If <i>r</i> is close to 0, that means there is no relationship between the variables.</p>
+                    </div>
+                    <div id="what-does-this-mean" class="app-info-subsection">
+                        <h2>What does that all mean?</h2>
+                        <p>In this case, the two variables being correlated are your BGG game ratings and another user's BGG game ratings.</p>
+                        <p>As long as you have a sufficient number of commonly rated games with the other user (75 or more is a good bet), the correlation coefficient can give you a reasonable idea of how similar your tastes are.</p>
+                    </div>
                 </div>
-                <div class="r-output">
-
+                <div id="info-bgg-geek-notice">
+                    <p>If you would like to compare your ratings to the BGG Geek Average instead of another user, just leave the second field blank!</p>
                 </div>
             </div>
+            <footer>
+                <div id="disclaimer">
+                    <p><i>Disclaimer: I am not a statistician. My understanding of the subtleties of the Pearson Coefficient (best use cases, robustness, sensitivity etc.) is admittedly limited. This tool was made in earnest using my best knowledge at the time, and may continue to evolve as I learn more.</i></p>
+                </div>
+                <div id="footer-content">
+                    <p>Jordan's Isola</p>
+                </div>
+            </footer>
         </div>
         <script src="js/script.js"></script>
     </body>
