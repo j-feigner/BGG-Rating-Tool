@@ -2,9 +2,11 @@ var REQUEST_MAX = 10;
 
 window.onload = main;
 
+var LOADING_STRING = "Fetching rating data. This can take some time with large collections...";
+
 var table = document.querySelector(".games-table tbody");
 
-var output = document.querySelector(".r-output p");
+var output = document.querySelector(".main-output.hidden");
 
 function main() {
     var input1 = document.getElementById("user1");
@@ -18,7 +20,10 @@ function main() {
         if(users[1] == "") {
             checkValidBGGUser(users[0])
             .then(user => {
-                output.innerHTML = "Fetching collections (this can take some time with large collections)...";
+                var loadingReminder = document.createElement("p");
+                loadingReminder.id = "loading-reminder";
+                loadingReminder.innerHTML = LOADING_STRING;
+                document.querySelector(".submit-container").insertAdjacentElement('afterend', loadingReminder);
                 compareAverage(user);
             })
             .catch(error => {
@@ -28,7 +33,7 @@ function main() {
         } else {
             Promise.all(users.map(user => checkValidBGGUser(user)))
             .then(users => {
-                output.innerHTML = "Fetching collections (this can take some time with large collections)...";
+                document.querySelector("#loading-reminder").innerHTML = LOADING_STRING;
                 compareUsers(users);
             })
             .catch(error => {
@@ -187,5 +192,6 @@ function outputRatings(ratings) {
 
     addDeltas(ratings);
     fillTable(table, ratings);
-    output.innerHTML = "Correlation over " + Object.keys(ratings).length + " games: " + r;
+    output.querySelector("#common-games").innerHTML = Object.keys(ratings).length + " common games";
+    output.querySelector("#r-output").innerHTML = "r = " + r; 
 }
