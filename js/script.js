@@ -4,13 +4,9 @@ window.onload = main;
 
 var table = document.querySelector(".games-table tbody");
 
-var output = document.querySelector(".r-output");
+var output = document.querySelector(".r-output p");
 
 function main() {
-    coefficientTest();
-
-    //pullUsernames();
-
     var input1 = document.getElementById("user1");
     var input2 = document.getElementById("user2");
     var submit = document.getElementById("submit");
@@ -22,6 +18,7 @@ function main() {
         if(users[1] == "") {
             checkValidBGGUser(users[0])
             .then(user => {
+                output.innerHTML = "Fetching collections (this can take some time with large collections)...";
                 compareAverage(user);
             })
             .catch(error => {
@@ -31,6 +28,7 @@ function main() {
         } else {
             Promise.all(users.map(user => checkValidBGGUser(user)))
             .then(users => {
+                output.innerHTML = "Fetching collections (this can take some time with large collections)...";
                 compareUsers(users);
             })
             .catch(error => {
@@ -55,7 +53,8 @@ function checkValidBGGUser(username) {
 
 // Returns a Promise that resolves to an XML string of a user's collection data from BGG
 // Repeated fetches are required due to BGG's collection export system
-function getBGGCollection(params, request_attempt) {
+function getBGGCollection(username, request_attempt = 0) {
+    var params = "?username=" + username + "&stats=1&rated=1";
     // Attempt to fetch user data
     return fetch("https://boardgamegeek.com/xmlapi2/collection" + params)
     .then(response => {
@@ -64,7 +63,7 @@ function getBGGCollection(params, request_attempt) {
             return new Promise(resolve => {
                 var exp_timeout = 5000 * Math.pow(2, request_attempt);
                 setTimeout(() => {
-                    resolve(getBGGCollection(params, ++request_attempt));
+                    resolve(getBGGCollection(username, ++request_attempt));
                 }, exp_timeout)
             })
         // If data is loaded, return response text
@@ -74,20 +73,10 @@ function getBGGCollection(params, request_attempt) {
     })
 }
 
-// Returns object of all game:rating pairs from BGG User collection data
-function getUserRatings(collection_xml) {
-    var ratings = {};
-    var parser = new DOMParser();
-    var doc = parser.parseFromString(collection_xml, "text/xml");
-    var games = doc.getElementsByTagName("item");
-    for(game of games) {
-        var name = game.getElementsByTagName("name")[0].innerHTML;
-        var rating = game.getElementsByTagName("rating")[0].getAttribute("value");
-        ratings[name] = parseFloat(rating);
-    }
-    return ratings;
-}
-
+// Returns set of all game ratings from user collection in format {game: {option1: , option2: , ...}}
+// Options: "user": include user rating for game
+//          "geek": include geek bayesian average rating for game
+//          "raw_avg": include raw average score from BGG users for game
 function parseCollection(collection_xml, options = []) {
     var ratings = {};
     var parser = new DOMParser();
@@ -103,10 +92,6 @@ function parseCollection(collection_xml, options = []) {
         }
         if(options.includes("geek")) {
             var geek_rating = game.querySelector("rating bayesaverage").getAttribute("value");
-            if(geek_rating == "0") {
-                delete ratings[name];
-                continue;
-            }
             ratings[name].geek = parseFloat(geek_rating);
         }
         if(options.includes("raw_avg")) {
@@ -117,159 +102,90 @@ function parseCollection(collection_xml, options = []) {
     return ratings;
 }
 
-// Returns array of game titles that appear in both ratings objects
-function findCommonGames(ratings1, ratings2) {
-    var common = [];
-    for(game in ratings1) {
-        if(game in ratings2) {
-            common.push(game);
+// Returns a standardized game:rating object with common games between two user rating sets
+// Object format {game: {rating1: , rating2: }}
+function mergeRatings(user1, user2) {
+    var output = {};
+    for(game in user1) {
+        if(game in user2) {
+            output[game] = {
+                "rating1": user1[game].user,
+                "rating2": user2[game].user
+            }
         }
     }
-    return common;
+    return output;
 }
 
-// Returns a new game:rating object with only common_games
-function createTrimmedRatings(ratings, common_games) {
-    var trim = {};
-    common_games.forEach(game => {
-        trim[game] = ratings[game];
-    }) 
-    return trim;
+// Parses Geek Average ratings object to standardized format {game: {rating1: , rating2: }}
+// and drops any games with insufficient geek rating (geek == 0)
+function filterGeek(ratings) {
+    var output = {};
+    for(game in ratings) {
+        // Skip any games with a 0 geek rating
+        if(ratings[game].geek == 0) {
+            continue;
+        }
+        output[game] = {
+            "rating1": ratings[game].user,
+            "rating2": ratings[game].geek
+        }
+    }
+    return output;
 }
 
-function populateRatingsTable(table, l1, l2) {
-    for(game in l1) {
-        var row = table.insertRow();
-        row.insertCell().innerHTML = game;
-        row.insertCell().innerHTML = l1[game];
-        row.insertCell().innerHTML = l2[game];
-        row.insertCell().innerHTML = l1[game] - l2[game];
+// Appends delta value to standardized ratings object
+function addDeltas(ratings) {
+    for(game in ratings) {
+        var delta = ratings[game].rating1 - ratings[game].rating2;
+        ratings[game]["delta"] = delta;
     }
 }
 
+// Populates output table with all rating values in ratings object
 function fillTable(table, ratings) {
     for(game in ratings) {
         var row = table.insertRow();
         row.insertCell().innerHTML = game;
 
         for(rating_type in ratings[game]) {
-            row.insertCell().innerHTML = ratings[game][rating_type];
+            var num = ratings[game][rating_type];
+            row.insertCell().innerHTML = parseFloat(num.toFixed(2));
         }
     }
 }
 
-// Returns sum of array of numbers
-function sum(array) {
-    var sum = 0;
-    array.forEach(element => sum += element);
-    return sum;
-}
-
-// Returns mean of array of numbers (ratings, in this case)
-function mean(array) {
-    var sum = 0;
-    array.forEach(element => sum += element);
-    return sum / array.length;
-}
-
-// Returns sample standard deviation from given array of numbers
-function stdDev(array) {
-    var arr_mean = mean(array);
-    var spread = array.map(val => Math.pow(val - arr_mean, 2));
-    var spread_sum = sum(spread);
-    return Math.sqrt(spread_sum / (array.length - 1))
-}
-
-// Test case: negative coefficient
-function coefficientTest() {
-    var l1 = [1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 6, 7, 7, 7, 8, 8, 8, 9, 9, 9, 10, 10, 10];
-    var l2 = l1.map(val => val / 2);
-
-    var mean1 = mean(l1);
-    var spread1 = l1.map(num => num - mean1);
-    var mean2 = mean(l2);
-    var spread2 = (l2).map(num => num - mean2);
-
-    var spread_mult = spread1.map((val, i) => val * spread2[i]);
-
-    var covariance = (sum(spread_mult)) / (l1.length - 1);
-
-    var dev1 = stdDev(l1);
-    var dev2 = stdDev(l2);
-
-    var r = covariance / (dev1 * dev2);
-}
-
 function compareUsers(users) {
-    output.innerHTML = "Fetching collections (this can take some time with large collections)..."
-    var params = users.map(user => "?username=" + user + "&stats=1&rated=1");
     // Fetch user collection data as XML
-    Promise.all(params.map(string => getBGGCollection(string, 0)))
+    Promise.all(users.map(user => getBGGCollection(user)))
     // Extract relevant ratings data
     .then(xml_data_sets => {
-        return Promise.all(xml_data_sets.map(data => getUserRatings(data)));
+        //return Promise.all(xml_data_sets.map(data => getUserRatings(data)));
+        return Promise.all(xml_data_sets.map(data => parseCollection(data, ["user"])))
     })
     // Calculate correlation coefficient from ratings data
     .then(ratings_data => {
-        var user1 = ratings_data[0];
-        var user2 = ratings_data[1];
-
-        var common_games = findCommonGames(user1, user2);
-
-        var list1 = createTrimmedRatings(user1, common_games);
-        var list2 = createTrimmedRatings(user2, common_games);
-
-        populateRatingsTable(table, list1, list2);
-
-        var deltas = {};
-        Object.keys(list1).forEach(game => {
-            deltas[game] = list1[game] - list2[game];
-        })
-
-        var mean1 = mean(Object.values(list1));
-        var spread1 = Object.values(list1).map(num => num - mean1);
-        var mean2 = mean(Object.values(list2));
-        var spread2 = Object.values(list2).map(num => num - mean2);
-
-        var spread_mult = spread1.map((val, i) => val * spread2[i]);
-
-        var covariance = (sum(spread_mult)) / (Object.keys(list1).length - 1);
-
-        var dev1 = stdDev(Object.values(list1));
-        var dev2 = stdDev(Object.values(list2));
-
-        var r = covariance / (dev1 * dev2);
-
-        output.innerHTML = "Correlation over " + spread1.length + " games: " + r;
+        var merged_ratings = mergeRatings(ratings_data[0], ratings_data[1]);
+        outputRatings(merged_ratings);
     })
 }
 
 function compareAverage(user) {
-    getBGGCollection("?username=" + user + "&stats=1&rated=1", 0)
+    getBGGCollection(user)
     .then(xml_data_set => {
         var ratings = parseCollection(xml_data_set, ["user", "geek"]);
-        
-        var l1 = Object.values(ratings).map(rating => rating.user);
-        var l2 = Object.values(ratings).map(rating => rating.geek);
-
-        fillTable(table, ratings);
-
-        var mean1 = mean(l1);
-        var spread1 = l1.map(num => num - mean1);
-        var mean2 = mean(l2);
-        var spread2 = l2.map(num => num - mean2);
-
-        var spread_mult = spread1.map((val, i) => val * spread2[i]);
-
-        var covariance = (sum(spread_mult)) / (l1.length - 1);
-
-        var dev1 = stdDev(l1);
-        var dev2 = stdDev(l2);
-
-        var r = covariance / (dev1 * dev2);
-
-        output.innerHTML = r;
+        outputRatings(filterGeek(ratings));
     })
+}
 
-    var stop = 0;
+// Expects merged ratings object or user+geek object
+// Calculates coefficient, adds deltas, and outputs to table
+function outputRatings(ratings) {
+    var l1 = Object.values(ratings).map(rating_set => rating_set.rating1);
+    var l2 = Object.values(ratings).map(rating_set => rating_set.rating2);
+    var r = correlation(l1, l2);
+
+    addDeltas(ratings);
+    fillTable(table, ratings);
+    output.innerHTML = "Correlation over " + Object.keys(ratings).length + " games: " + r;
 }
