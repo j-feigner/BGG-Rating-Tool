@@ -13,8 +13,18 @@ function main() {
     var input2 = document.getElementById("user2");
     var submit = document.getElementById("submit");
 
+    var lastUsers = ["", ""];
+
     submit.addEventListener("click", e => {
         var users = [input1.value, input2.value];
+
+        // Check if user fields have changed
+        if(users[0] === lastUsers[0] && users[1] === lastUsers[1]) {
+            return;
+        } else {
+            lastUsers = users;
+        }
+
         table.innerHTML = "";
         // If second input is blank, compare user ratings to average
         if(users[1] == "") {
@@ -55,7 +65,7 @@ function checkValidBGGUser(username) {
 
 // Returns a Promise that resolves to an XML string of a user's collection data from BGG
 // Repeated fetches are required due to BGG's collection export system
-function getBGGCollection(username, request_attempt = 0) {
+function getBGGCollection(username, requestAttempt = 0) {
     var params = "?username=" + username + "&stats=1&rated=1";
     // Attempt to fetch user data
     return fetch("https://boardgamegeek.com/xmlapi2/collection" + params)
@@ -63,9 +73,9 @@ function getBGGCollection(username, request_attempt = 0) {
         // If data is waiting to load (BGG batch), retry with exponential back off
         if(response.status == 202) {
             return new Promise(resolve => {
-                var exp_timeout = 5000 * Math.pow(2, request_attempt);
+                var exp_timeout = 5000 * Math.pow(2, requestAttempt);
                 setTimeout(() => {
-                    resolve(getBGGCollection(username, ++request_attempt));
+                    resolve(getBGGCollection(username, ++requestAttempt));
                 }, exp_timeout)
             })
         // If data is loaded, return response text
@@ -79,26 +89,26 @@ function getBGGCollection(username, request_attempt = 0) {
 // Options: "user": include user rating for game
 //          "geek": include geek bayesian average rating for game
 //          "raw_avg": include raw average score from BGG users for game
-function parseCollection(collection_xml, options = []) {
+function parseCollection(collectionXML, options = []) {
     var ratings = {};
     var parser = new DOMParser();
-    var doc = parser.parseFromString(collection_xml, "text/xml");
+    var doc = parser.parseFromString(collectionXML, "text/xml");
     var games = doc.getElementsByTagName("item");
 
     for(game of games) {
         var name = game.getElementsByTagName("name")[0].innerHTML;
         ratings[name] = {};
         if(options.includes("user")) {
-            var user_rating = game.querySelector("rating").getAttribute("value");
-            ratings[name].user = parseFloat(user_rating);
+            var userRating = game.querySelector("rating").getAttribute("value");
+            ratings[name].user = parseFloat(userRating);
         }
         if(options.includes("geek")) {
-            var geek_rating = game.querySelector("rating bayesaverage").getAttribute("value");
-            ratings[name].geek = parseFloat(geek_rating);
+            var geekRating = game.querySelector("rating bayesaverage").getAttribute("value");
+            ratings[name].geek = parseFloat(geekRating);
         }
         if(options.includes("raw_avg")) {
-            var raw_avg_rating = game.querySelector("rating average").getAttribute("value");
-            ratings[name].raw_avg = parseFloat(raw_avg_rating);
+            var rawAvgRating = game.querySelector("rating average").getAttribute("value");
+            ratings[name].raw_avg = parseFloat(rawAvgRating);
         }
     }
     return ratings;
@@ -161,23 +171,23 @@ function compareUsers(users) {
     // Fetch user collection data as XML
     Promise.all(users.map(user => getBGGCollection(user)))
     // Extract relevant ratings data
-    .then(xml_data_sets => {
+    .then(xmlDataSets => {
         toggleLoading();
         //return Promise.all(xml_data_sets.map(data => getUserRatings(data)));
-        return Promise.all(xml_data_sets.map(data => parseCollection(data, ["user"])))
+        return Promise.all(xmlDataSets.map(data => parseCollection(data, ["user"])))
     })
     // Calculate correlation coefficient from ratings data
-    .then(ratings_data => {
-        var merged_ratings = mergeRatings(ratings_data[0], ratings_data[1]);
+    .then(ratingsData => {
+        var merged_ratings = mergeRatings(ratingsData[0], ratingsData[1]);
         outputRatings(merged_ratings, "userCompare");
     })
 }
 
 function compareAverage(user) {
     getBGGCollection(user)
-    .then(xml_data_set => {
+    .then(xmlDataSet => {
         toggleLoading();
-        var ratings = parseCollection(xml_data_set, ["user", "geek"]);
+        var ratings = parseCollection(xmlDataSet, ["user", "geek"]);
         outputRatings(filterGeek(ratings), "geekCompare");
     })
 }
@@ -219,7 +229,7 @@ function getCorrelationMessage(r, option) {
     return fetch("json/correlation_messages.json")
     .then(response => response.json())
     .then(responses => {
-        if(r >= -1.0 && r < -0.90) {
+        if(r < -0.90) {
             return responses[option].negativeVeryStrong;
         }
         if(r >= -0.90 && r < -0.65) {
@@ -243,7 +253,7 @@ function getCorrelationMessage(r, option) {
         if(r >= 0.65 && r < 0.90) {
             return responses[option].positiveStrong;
         }
-        if(r >= 0.9 && r <= 1.0) {
+        if(r >= 0.9) {
             return responses[option].positiveVeryStrong;
         }
     })

@@ -164,6 +164,7 @@ input, button {
 .output-block {
     position: relative;
     z-index: 99;
+    font-family: 'Roboto', sans-serif;
 }
 
 .main-output {
