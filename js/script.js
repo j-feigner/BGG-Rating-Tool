@@ -6,7 +6,7 @@ var LOADING_STRING = "Fetching rating data. This can take some time with large c
 
 var table = document.querySelector(".games-table tbody");
 
-var output = document.querySelector(".main-output.hidden");
+var output = document.querySelector(".main-output");
 
 function main() {
     var input1 = document.getElementById("user1");
@@ -30,7 +30,7 @@ function main() {
         } else {
             Promise.all(users.map(user => checkValidBGGUser(user)))
             .then(users => {
-                document.querySelector("#loading-reminder").innerHTML = LOADING_STRING;
+                toggleLoading();
                 compareUsers(users);
             })
             .catch(error => {
@@ -162,13 +162,14 @@ function compareUsers(users) {
     Promise.all(users.map(user => getBGGCollection(user)))
     // Extract relevant ratings data
     .then(xml_data_sets => {
+        toggleLoading();
         //return Promise.all(xml_data_sets.map(data => getUserRatings(data)));
         return Promise.all(xml_data_sets.map(data => parseCollection(data, ["user"])))
     })
     // Calculate correlation coefficient from ratings data
     .then(ratings_data => {
         var merged_ratings = mergeRatings(ratings_data[0], ratings_data[1]);
-        outputRatings(merged_ratings);
+        outputRatings(merged_ratings, "userCompare");
     })
 }
 
@@ -177,23 +178,29 @@ function compareAverage(user) {
     .then(xml_data_set => {
         toggleLoading();
         var ratings = parseCollection(xml_data_set, ["user", "geek"]);
-        outputRatings(filterGeek(ratings));
+        outputRatings(filterGeek(ratings), "geekCompare");
     })
 }
 
-// Expects merged ratings object or user+geek object
+// Expects merged ratings object or user+geek object depending on mode
 // Calculates coefficient, adds deltas, and outputs to table
-function outputRatings(ratings) {
+function outputRatings(ratings, mode) {
     var l1 = Object.values(ratings).map(rating_set => rating_set.rating1);
     var l2 = Object.values(ratings).map(rating_set => rating_set.rating2);
     var r = correlation(l1, l2);
 
+    getCorrelationMessage(r, mode)
+    .then(msg => {
+        output.querySelector("#strength-description").innerHTML = msg;
+    });
+
     addDeltas(ratings);
     fillTable(table, ratings);
     output.querySelector("#common-games").innerHTML = Object.keys(ratings).length + " common games";
-    output.querySelector("#r-output").innerHTML = "r = " + r; 
+    output.querySelector("#r-output").innerHTML = "r = " + r.toFixed(3); 
 }
 
+// Toggles appropriate classes for loading elements to show/hide
 function toggleLoading() {
     var reminderElement = document.querySelector("#loading-reminder");
     var submitText = document.querySelector("#submit span");
@@ -204,4 +211,40 @@ function toggleLoading() {
     submitText.classList.toggle("hidden");
     submitButton.classList.toggle("loading")
     loadingIcon.classList.toggle("hidden");
+}
+
+// Parses JSON data for correlation descriptions based on ranges in r
+// Options: "userCompare", "geekCompare"
+function getCorrelationMessage(r, option) {
+    return fetch("json/correlation_messages.json")
+    .then(response => response.json())
+    .then(responses => {
+        if(r >= -1.0 && r < -0.90) {
+            return responses[option].negativeVeryStrong;
+        }
+        if(r >= -0.90 && r < -0.65) {
+            return responses[option].negativeStrong;
+        }
+        if(r >= -0.65 && r < -0.45) {
+            return responses[option].negativeModerate;
+        }
+        if(r >= -0.45 && r < -0.20) {
+            return responses[option].negativeMild;
+        }
+        if(r >= -0.20 && r < 0.20) {
+            return responses[option].noCorrelation;
+        }
+        if(r >= 0.20 && r < 0.45) {
+            return responses[option].positiveMild;
+        }
+        if(r >= 0.45 && r < 0.65) {
+            return responses[option].positiveModerate;
+        }
+        if(r >= 0.65 && r < 0.90) {
+            return responses[option].positiveStrong;
+        }
+        if(r >= 0.9 && r <= 1.0) {
+            return responses[option].positiveVeryStrong;
+        }
+    })
 }
