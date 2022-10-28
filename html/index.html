@@ -29,10 +29,13 @@
                     </div>
                 </div>
                 <div class="submit-container">
-                    <button id="submit">SUBMIT</button>
+                    <button id="submit">
+                        <img src="images/loading_icon.png" id="loading-icon" class="hidden">
+                        <span>SUBMIT</span>
+                    </button>
                 </div>
                 <div class="loading-container">
-                    <span id="loading-reminder" class="hidden"></span>
+                    <span id="loading-reminder" class="hidden">Fetching rating data. This can take some time with large collections...</span>
                 </div>
             </div>
             <div class="output-block hidden">
@@ -69,8 +72,8 @@
                     <div id="correlation-help" class="app-info-subsection">
                         <h3>What is a correlation coefficient?</h3>
                         <p>A correlation coefficient, usually called <i>r</i>, is a value between -1 and 1 that represents how strong of a relationship exists between two variables.</p>
-                        <p>If <i>r</i> is close to 1, this represents a strong <i>positive</i> relationship between the two variables. When one is high the other tends to be high as well.</p>
-                        <p>If <i>r</i> is close to -1, this represents a strong <i>negative</i> relationship between the two variables. When one is high the other tends to <i>low</i> instead.</p>
+                        <p>If <i>r</i> is close to 1, this means there is a strong <i>positive</i> relationship between the two variables: when one is high the other tends to be high, and vice versa.</p>
+                        <p>If <i>r</i> is close to -1, this means there is a strong <i>negative</i> relationship between the two variables: when one is high the other tends to <i>low</i>, and vice versa.</p>
                         <p>If <i>r</i> is close to 0, that means there is no relationship between the variables.</p>
                     </div>
                     <div id="what-does-this-mean" class="app-info-subsection">
@@ -85,7 +88,7 @@
             </div>
             <footer>
                 <div id="disclaimer">
-                    <p><i>Disclaimer: I am not a statistician. My understanding of the subtleties of the Pearson Coefficient (best use cases, robustness, sensitivity etc.) is admittedly limited. This tool was made in earnest using my best knowledge at the time, and may continue to evolve as I learn more.</i></p>
+                    <p><i>Disclaimer: I am not a statistician. My understanding of the subtleties of the Pearson Coefficient (best use cases, robustness, sensitivity etc.) are admittedly limited. This tool was made in earnest using my best knowledge at the time, and may continue to evolve as I learn more.</i></p>
                 </div>
                 <div id="footer-content">
                     <p>Jordan's Isola</p>

@@ -95,7 +95,7 @@ input, button {
     color: rgb(184, 184, 184);
 }
 
-/* Submit Button */
+/* Submit Button and Loading Reminder */
 .submit-container {
     display: flex;
     flex-direction: column;
@@ -106,6 +106,7 @@ input, button {
 }
 
 #submit {
+    position: relative;
     border: none;
     outline: none;
     width: 180px;
@@ -133,27 +134,29 @@ input, button {
     pointer-events: none;
 }
 
+#loading-icon {
+    position: absolute;
+    height: 32px;
+    width: 32px;
+    top: 50%;
+    left: 50%;
+    animation: loading-spin 1s infinite;
+}
+
 .loading-container {
     display: flex;
     flex-direction: column;
     justify-content: center;
     position: relative;
     padding: 8px 0px 8px 0px;
-    min-height: 0.85em;
+    min-height: 1em;
 }
 
 #loading-reminder {
     font-size: 0.85em;
     font-style: italic;
-    line-height: 0.85em;
-}
-
-#loading-reminder.hidden {
-    display: none;
-}
-
-#loading-reminder.shown {
-    display: block;
+    font-family: Arial, Helvetica, sans-serif;
+    line-height: 1em;
     animation: fade-in 0.4s ease;
 }
 
@@ -211,7 +214,7 @@ input, button {
 #info-bgg-geek-notice {
     position: relative;
     padding: 1px 10px 1px 10px;
-    background-color: rgb(187, 216, 235);
+    background-color: rgb(192, 213, 226);
     color: black;
     height: auto;
     width: 100%;
@@ -253,4 +256,19 @@ footer {
     to {
         opacity: 1;
     }
+}
+
+@keyframes loading-spin {
+    from {
+        transform: translate(-50%, -50%) rotate(0deg);
+    }
+    to {
+        transform: translate(-50%, -50%) rotate(360deg);
+    }
+}
+
+/* General Classes */
+
+.hidden{
+    display: none;
 }

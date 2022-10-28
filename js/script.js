@@ -20,10 +20,7 @@ function main() {
         if(users[1] == "") {
             checkValidBGGUser(users[0])
             .then(user => {
-                var loadingReminder = document.querySelector("#loading-reminder");
-                loadingReminder.innerHTML = LOADING_STRING;
-                loadingReminder.classList.remove("hidden");
-                loadingReminder.classList.add("shown");
+                toggleLoading();
                 compareAverage(user);
             })
             .catch(error => {
@@ -178,6 +175,7 @@ function compareUsers(users) {
 function compareAverage(user) {
     getBGGCollection(user)
     .then(xml_data_set => {
+        toggleLoading();
         var ratings = parseCollection(xml_data_set, ["user", "geek"]);
         outputRatings(filterGeek(ratings));
     })
@@ -194,4 +192,16 @@ function outputRatings(ratings) {
     fillTable(table, ratings);
     output.querySelector("#common-games").innerHTML = Object.keys(ratings).length + " common games";
     output.querySelector("#r-output").innerHTML = "r = " + r; 
+}
+
+function toggleLoading() {
+    var reminderElement = document.querySelector("#loading-reminder");
+    var submitText = document.querySelector("#submit span");
+    var submitButton = document.querySelector("#submit");
+    var loadingIcon = document.querySelector("#loading-icon");
+
+    reminderElement.classList.toggle("hidden");
+    submitText.classList.toggle("hidden");
+    submitButton.classList.toggle("loading")
+    loadingIcon.classList.toggle("hidden");
 }
