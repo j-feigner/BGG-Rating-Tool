@@ -101,7 +101,7 @@ input, button {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    padding: 20px;
+    padding: 20px 0px 10px 0px;
     min-height: 50px;
 }
 
@@ -133,12 +133,28 @@ input, button {
     pointer-events: none;
 }
 
-#loading-reminder {
+.loading-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
     position: relative;
+    padding: 8px 0px 8px 0px;
+    min-height: 0.85em;
+}
+
+#loading-reminder {
     font-size: 0.85em;
     font-style: italic;
-    transition: .4s;
-    animation: fade-grow-in 1s ease;
+    line-height: 0.85em;
+}
+
+#loading-reminder.hidden {
+    display: none;
+}
+
+#loading-reminder.shown {
+    display: block;
+    animation: fade-in 0.4s ease;
 }
 
 /* Output Section */
@@ -230,13 +246,11 @@ footer {
 
 /* Animations */
 
-@keyframes fade-grow-in {
+@keyframes fade-in {
     from {
-        top: -20px;
         opacity: 0;
     }
     to {
-        top: 0px;
         opacity: 1;
     }
 }

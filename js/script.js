@@ -20,10 +20,10 @@ function main() {
         if(users[1] == "") {
             checkValidBGGUser(users[0])
             .then(user => {
-                var loadingReminder = document.createElement("p");
-                loadingReminder.id = "loading-reminder";
+                var loadingReminder = document.querySelector("#loading-reminder");
                 loadingReminder.innerHTML = LOADING_STRING;
-                document.querySelector(".submit-container").insertAdjacentElement('afterend', loadingReminder);
+                loadingReminder.classList.remove("hidden");
+                loadingReminder.classList.add("shown");
                 compareAverage(user);
             })
             .catch(error => {
