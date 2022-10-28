@@ -31,6 +31,10 @@ h4 {
     font-size: 2em;
 }
 
+h5 {
+    font-size: 1.5em;
+}
+
 p, ol {
     font-size: 1em;
 }
@@ -44,7 +48,7 @@ input, button {
     position: relative;
     text-align: center;
     background: linear-gradient(50deg, rgb(21, 39, 100), rgb(88, 14, 14));
-    padding: 20px 0px 10px 0px;
+    padding: 20px 20px 10px 20px;
     box-shadow: 0px 0px 15px 5px rgba(0, 0, 0, 0.61);
     transition: .5s;
     z-index: 100;
@@ -167,7 +171,7 @@ input, button {
     font-family: 'Roboto', sans-serif;
 }
 
-.main-output {
+#main-output {
     position: relative;
     display: flex;
     flex-direction: column;
@@ -176,13 +180,85 @@ input, button {
     background-color: rgb(31, 150, 56);
     text-align: center;
     min-height: 200px;
+    padding: 20px;
+}
+
+#main-output.positive {
+    background-color: rgb(11, 145, 71);
+}
+
+#main-output.neutral {
+    background-color: rgb(82, 82, 82);
+}
+
+#main-output.negative {
+    background-color: rgb(139, 51, 51);
+}
+
+
+#main-output h2, 
+#main-output h3, 
+#main-output h4, 
+#main-output h5, 
+#main-output p {
+    margin: 0px;
+}
+
+#stats-output {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: flex-start;
+    background-color: rgb(255, 255, 255);
+    color: rgb(23, 72, 112);
+    padding: 30px;
+}
+
+#games-table,
+#extra-stats table {
+    max-width: 700px;
+    border-collapse: collapse;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+tr:nth-child(odd) {
+    background-color: rgb(224, 224, 224);
+}
+
+tr:nth-child(even) {
+    background-color: rgb(240, 240, 240);
+}
+
+th, td {
+    padding: 6px 9px 6px 9px;
+}
+
+th {
+    background-color: rgb(117, 152, 185);
+    color: white;
+}
+
+td.table-num {
+    text-align: right;
+}
+
+tr:hover{
+    background-color: rgb(190, 190, 190);
 }
 
 .games-table-container {
-    background-color: rgb(167, 148, 148);
-    color: darkslateblue;
-    min-width: 100%;
-    min-height: 800px;
+    padding: 20px;
+}
+
+#extra-stats {
+    display: flex;
+    flex-direction: column;
+    align-items: left;
+    justify-content: flex-start;
+    padding: 20px;
+    gap: 20px;
 }
 
 /* App Info Section */

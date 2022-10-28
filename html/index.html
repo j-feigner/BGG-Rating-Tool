@@ -15,7 +15,7 @@
             <div class="input-block">
                 <div class="input-flex-container">
                     <div class="title">
-                        <h1>BGG Rating Correlation Tool</h1>
+                        <h1>BGG Rating Comparison Tool</h1>
                     </div>
                     <div class="input-row">
                         <div class="input-label-pair">
@@ -39,24 +39,71 @@
                 </div>
             </div>
             <div class="output-block">
-                <div class="main-output">
-                    <h2 id="strength-description"></h2>
+                <div id="main-output">
+                    <h3 id="strength-description"></h3>
+                    <h2 id="r-output"></h2>
+                    <h5>over</h5>
                     <h3 id="common-games"></h3>
-                    <h3 id="r-output"></h3>
                 </div>
-                <div class="games-table-container">
-                    <table class="games-table">
-                        <thead>
-                            <tr class="table-headers">
-                                <th scope="col">Game</th>
-                                <th scope="col">User 1</th>
-                                <th scope="col">User 2</th>
-                                <th scope="col">Delta</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        </tbody>
-                    </table>
+                <div id="stats-output">
+                    <div class="games-table-container">
+                        <table id="games-table">
+                            <thead>
+                                <tr class="table-headers">
+                                    <th scope="col" id="game-th">Game</th>
+                                    <th scope="col" id="rating1-th">User #1</th>
+                                    <th scope="col" id="rating2-th">User #2</th>
+                                    <th scope="col" id="delta-th">Delta</th>
+                                    <th scope="col" id="delta-th">z Delta</th>
+                                    <th scope="col" id="delta-th">z Avg.</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="extra-stats">
+                        <table id="love-table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Games you both love</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+
+                            </tbody>
+                        </table>
+                        <table id="hate-table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Games you both don't love</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+
+                            </tbody>
+                        </table>
+                        <table id="agree-table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Games you agree about</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+
+                            </tbody>
+                        </table>
+                        <table id="disagree-table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Games you disagree about</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
             <div class="app-info-block">
@@ -88,7 +135,7 @@
             </div>
             <footer>
                 <div id="disclaimer">
-                    <p><i>Disclaimer: I am not a statistician. My understanding of the subtleties of the Pearson Coefficient (best use cases, robustness, sensitivity etc.) are admittedly limited. This tool was made in earnest using my best knowledge at the time, and may continue to evolve as I learn more.</i></p>
+                    <p><i>Disclaimer: I am not a statistician. This tool was made in earnest using my best knowledge at the time, and may continue to evolve as I learn more.</i></p>
                 </div>
                 <div id="footer-content">
                     <p>Jordan's Isola</p>

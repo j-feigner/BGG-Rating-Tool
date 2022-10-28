@@ -4,9 +4,9 @@ window.onload = main;
 
 var LOADING_STRING = "Fetching rating data. This can take some time with large collections...";
 
-var table = document.querySelector(".games-table tbody");
+var table = document.querySelector("#games-table tbody");
 
-var output = document.querySelector(".main-output");
+var output = document.querySelector("#main-output");
 
 function main() {
     var input1 = document.getElementById("user1");
@@ -154,6 +154,26 @@ function addDeltas(ratings) {
     }
 }
 
+function addZValues(ratings) {
+    var l1 = Object.values(ratings).map(ratingSet => ratingSet.rating1);
+    var mean1 = mean(l1);
+    var dev1 = stdDev(l1);
+
+    var l2 = Object.values(ratings).map(ratingSet => ratingSet.rating2);
+    var mean2 = mean(l2);
+    var dev2 = stdDev(l2);
+
+    for(game in ratings) {
+        var zDelta = ((ratings[game].rating1 - mean1) / dev1) - 
+                    ((ratings[game].rating2 - mean2) / dev2);
+        var zSum = ((ratings[game].rating1 - mean1) / dev1) + 
+                    ((ratings[game].rating2 - mean2) / dev2);
+
+        ratings[game]["zDelta"] = zDelta;
+        ratings[game]["zAvg"] = zSum / 2;
+    }
+}
+
 // Populates output table with all rating values in ratings object
 function fillTable(table, ratings) {
     for(game in ratings) {
@@ -162,7 +182,10 @@ function fillTable(table, ratings) {
 
         for(rating_type in ratings[game]) {
             var num = ratings[game][rating_type];
-            row.insertCell().innerHTML = parseFloat(num.toFixed(2));
+            var cell = row.insertCell();
+
+            cell.classList.add("table-num");
+            cell.innerHTML = parseFloat(num.toFixed(2));
         }
     }
 }
@@ -195,18 +218,33 @@ function compareAverage(user) {
 // Expects merged ratings object or user+geek object depending on mode
 // Calculates coefficient, adds deltas, and outputs to table
 function outputRatings(ratings, mode) {
-    var l1 = Object.values(ratings).map(rating_set => rating_set.rating1);
-    var l2 = Object.values(ratings).map(rating_set => rating_set.rating2);
+    // Get correlation coefficient
+    var l1 = Object.values(ratings).map(ratingSet => ratingSet.rating1);
+    var l2 = Object.values(ratings).map(ratingSet => ratingSet.rating2);
     var r = correlation(l1, l2);
 
+    // Set color of output block
+    output.className = "";
+    if(r <= -0.2) {
+        output.classList.add("negative");
+    } else if (r >= 0.2) {
+        output.classList.add("positive");
+    } else {
+        output.classList.add("neutral");
+    }
+
+    // Modify ratings object
     getCorrelationMessage(r, mode)
     .then(msg => {
         output.querySelector("#strength-description").innerHTML = msg;
     });
-
     addDeltas(ratings);
+    addZValues(ratings);
+
+    // Output to tables
+    displayExtraStats(ratings);
     fillTable(table, ratings);
-    output.querySelector("#common-games").innerHTML = Object.keys(ratings).length + " common games";
+    output.querySelector("#common-games").innerHTML = Object.keys(ratings).length + " games";
     output.querySelector("#r-output").innerHTML = "r = " + r.toFixed(3); 
 }
 
@@ -228,33 +266,61 @@ function toggleLoading() {
 function getCorrelationMessage(r, option) {
     return fetch("json/correlation_messages.json")
     .then(response => response.json())
-    .then(responses => {
+    .then(msgs => {
         if(r < -0.90) {
-            return responses[option].negativeVeryStrong;
+            return msgs[option].negativeVeryStrong;
         }
         if(r >= -0.90 && r < -0.65) {
-            return responses[option].negativeStrong;
+            return msgs[option].negativeStrong;
         }
         if(r >= -0.65 && r < -0.45) {
-            return responses[option].negativeModerate;
+            return msgs[option].negativeModerate;
         }
         if(r >= -0.45 && r < -0.20) {
-            return responses[option].negativeMild;
+            return msgs[option].negativeMild;
         }
-        if(r >= -0.20 && r < 0.20) {
-            return responses[option].noCorrelation;
+        if(r > -0.20 && r < 0.20) {
+            return msgs[option].noCorrelation;
         }
         if(r >= 0.20 && r < 0.45) {
-            return responses[option].positiveMild;
+            return msgs[option].positiveMild;
         }
         if(r >= 0.45 && r < 0.65) {
-            return responses[option].positiveModerate;
+            return msgs[option].positiveModerate;
         }
         if(r >= 0.65 && r < 0.90) {
-            return responses[option].positiveStrong;
+            return msgs[option].positiveStrong;
         }
         if(r >= 0.9) {
-            return responses[option].positiveVeryStrong;
+            return msgs[option].positiveVeryStrong;
         }
     })
+}
+
+function displayExtraStats(ratings) {
+    // Sorting arrays
+    var sortZDeltaAsc = Object.keys(ratings).sort((a, b) => {
+        return Math.abs(ratings[a].zDelta) - Math.abs(ratings[b].zDelta);
+    });
+    var sortZDeltaDesc = Object.keys(ratings).sort((a, b) => {
+        return Math.abs(ratings[b].zDelta) - Math.abs(ratings[a].zDelta);
+    });
+    var sortZAvgAsc = Object.keys(ratings).sort((a, b) => {
+        return ratings[a].zAvg - ratings[b].zAvg;
+    });
+    var sortZAvgDesc = Object.keys(ratings).sort((a, b) => {
+        return ratings[b].zAvg - ratings[a].zAvg;
+    });
+
+    fillStatTable(sortZAvgDesc, "#love-table tbody");
+    fillStatTable(sortZAvgAsc, "#hate-table tbody");
+    fillStatTable(sortZDeltaAsc, "#agree-table tbody");
+    fillStatTable(sortZDeltaDesc, "#disagree-table tbody");
+}
+
+function fillStatTable(array, tableSelector) {
+    var table = document.querySelector(tableSelector);
+    for(let i = 0; i < 10 && i < array.length; i++) {
+        table.insertRow().insertCell().innerHTML = array[i];
+    }
 }
