@@ -115,14 +115,16 @@ function parseCollection(collectionXML, options = []) {
 }
 
 // Returns a standardized game:rating object with common games between two user rating sets
-// Object format {game: {rating1: , rating2: }}
 function mergeRatings(user1, user2) {
     var output = {};
     for(game in user1) {
         if(game in user2) {
             output[game] = {
                 "rating1": user1[game].user,
-                "rating2": user2[game].user
+                "rating2": user2[game].user,
+                "delta": user1[game].user - user2[game].user,
+                "zDelta": user1[game].z - user2[game].z,
+                "zAvg": (user1[game].z + user2[game].z) / 2
             }
         }
     }
@@ -154,23 +156,14 @@ function addDeltas(ratings) {
     }
 }
 
-function addZValues(ratings) {
-    var l1 = Object.values(ratings).map(ratingSet => ratingSet.rating1);
-    var mean1 = mean(l1);
-    var dev1 = stdDev(l1);
+function addZValues(userRatings) {
+    var list = Object.values(userRatings).map(rating => rating.user);
+    var avg = mean(list);
+    var dev = stdDev(list, "population");
 
-    var l2 = Object.values(ratings).map(ratingSet => ratingSet.rating2);
-    var mean2 = mean(l2);
-    var dev2 = stdDev(l2);
-
-    for(game in ratings) {
-        var zDelta = ((ratings[game].rating1 - mean1) / dev1) - 
-                    ((ratings[game].rating2 - mean2) / dev2);
-        var zSum = ((ratings[game].rating1 - mean1) / dev1) + 
-                    ((ratings[game].rating2 - mean2) / dev2);
-
-        ratings[game]["zDelta"] = zDelta;
-        ratings[game]["zAvg"] = zSum / 2;
+    for(game in userRatings) {
+        var z = ((userRatings[game].user - avg) / dev);
+        userRatings[game]["z"] = z;
     }
 }
 
@@ -201,6 +194,7 @@ function compareUsers(users) {
     })
     // Calculate correlation coefficient from ratings data
     .then(ratingsData => {
+        ratingsData.map(ratingSet => addZValues(ratingSet));
         var merged_ratings = mergeRatings(ratingsData[0], ratingsData[1]);
         outputRatings(merged_ratings, "userCompare");
     })
@@ -221,7 +215,8 @@ function outputRatings(ratings, mode) {
     // Get correlation coefficient
     var l1 = Object.values(ratings).map(ratingSet => ratingSet.rating1);
     var l2 = Object.values(ratings).map(ratingSet => ratingSet.rating2);
-    var r = correlation(l1, l2);
+    var r = pearsonCorrelation(l1, l2);
+    var s = spearmanCorrelation(l1, l2);
 
     // Set color of output block
     output.className = "";
@@ -238,14 +233,13 @@ function outputRatings(ratings, mode) {
     .then(msg => {
         output.querySelector("#strength-description").innerHTML = msg;
     });
-    addDeltas(ratings);
-    addZValues(ratings);
 
     // Output to tables
     displayExtraStats(ratings);
     fillTable(table, ratings);
     output.querySelector("#common-games").innerHTML = Object.keys(ratings).length + " games";
     output.querySelector("#r-output").innerHTML = "r = " + r.toFixed(3); 
+    output.querySelector("#s-output").innerHTML = "s = " + s.toFixed(3); 
 }
 
 // Toggles appropriate classes for loading elements to show/hide
