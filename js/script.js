@@ -123,6 +123,7 @@ function mergeRatings(user1, user2) {
                 "rating1": user1[game].user,
                 "rating2": user2[game].user,
                 "delta": user1[game].user - user2[game].user,
+                "avg": (user1[game].user + user2[game].user) / 2,
                 "zDelta": user1[game].z - user2[game].z,
                 "zAvg": (user1[game].z + user2[game].z) / 2
             }
@@ -168,18 +169,19 @@ function addZValues(userRatings) {
 }
 
 // Populates output table with all rating values in ratings object
-function fillTable(table, ratings) {
+function fillMainTable(table, ratings) {
     for(game in ratings) {
         var row = table.insertRow();
         row.insertCell().innerHTML = game;
+        
+        const ratingOrder = ["rating1", "rating2", "delta", "zDelta", "avg", "zAvg"];
 
-        for(rating_type in ratings[game]) {
-            var num = ratings[game][rating_type];
+        ratingOrder.forEach(ratingType => {
+            var num = ratings[game][ratingType];
             var cell = row.insertCell();
-
             cell.classList.add("table-num");
             cell.innerHTML = parseFloat(num.toFixed(2));
-        }
+        })
     }
 }
 
@@ -229,14 +231,14 @@ function outputRatings(ratings, mode) {
     }
 
     // Modify ratings object
-    getCorrelationMessage(r, mode)
+    getCorrelationMessage(Math.max(r, s), mode)
     .then(msg => {
         output.querySelector("#strength-description").innerHTML = msg;
     });
 
     // Output to tables
-    displayExtraStats(ratings);
-    fillTable(table, ratings);
+    extraStats(ratings);
+    fillMainTable(table, ratings);
     output.querySelector("#common-games").innerHTML = Object.keys(ratings).length + " games";
     output.querySelector("#r-output").innerHTML = "r = " + r.toFixed(3); 
     output.querySelector("#s-output").innerHTML = "s = " + s.toFixed(3); 
@@ -257,64 +259,100 @@ function toggleLoading() {
 
 // Parses JSON data for correlation descriptions based on ranges in r
 // Options: "userCompare", "geekCompare"
-function getCorrelationMessage(r, option) {
+function getCorrelationMessage(coefficient, option) {
     return fetch("json/correlation_messages.json")
     .then(response => response.json())
     .then(msgs => {
-        if(r < -0.90) {
+        if(coefficient < -0.90) {
             return msgs[option].negativeVeryStrong;
         }
-        if(r >= -0.90 && r < -0.65) {
+        if(coefficient >= -0.90 && coefficient < -0.65) {
             return msgs[option].negativeStrong;
         }
-        if(r >= -0.65 && r < -0.45) {
+        if(coefficient >= -0.65 && coefficient < -0.45) {
             return msgs[option].negativeModerate;
         }
-        if(r >= -0.45 && r < -0.20) {
+        if(coefficient >= -0.45 && coefficient < -0.20) {
             return msgs[option].negativeMild;
         }
-        if(r > -0.20 && r < 0.20) {
+        if(coefficient > -0.20 && coefficient < 0.20) {
             return msgs[option].noCorrelation;
         }
-        if(r >= 0.20 && r < 0.45) {
+        if(coefficient >= 0.20 && coefficient < 0.45) {
             return msgs[option].positiveMild;
         }
-        if(r >= 0.45 && r < 0.65) {
+        if(coefficient >= 0.45 && coefficient < 0.65) {
             return msgs[option].positiveModerate;
         }
-        if(r >= 0.65 && r < 0.90) {
+        if(coefficient >= 0.65 && coefficient < 0.90) {
             return msgs[option].positiveStrong;
         }
-        if(r >= 0.9) {
+        if(coefficient >= 0.9) {
             return msgs[option].positiveVeryStrong;
         }
     })
 }
 
-function displayExtraStats(ratings) {
-    // Sorting arrays
-    var sortZDeltaAsc = Object.keys(ratings).sort((a, b) => {
-        return Math.abs(ratings[a].zDelta) - Math.abs(ratings[b].zDelta);
-    });
-    var sortZDeltaDesc = Object.keys(ratings).sort((a, b) => {
-        return Math.abs(ratings[b].zDelta) - Math.abs(ratings[a].zDelta);
-    });
-    var sortZAvgAsc = Object.keys(ratings).sort((a, b) => {
-        return ratings[a].zAvg - ratings[b].zAvg;
-    });
-    var sortZAvgDesc = Object.keys(ratings).sort((a, b) => {
-        return ratings[b].zAvg - ratings[a].zAvg;
-    });
+function extraStats(ratings) {
+    // Sorted and sliced arrays of game names according to extra stat sub-tables
+    // Object property names reflect DOM stat tables for dynamic insertion
+    const statsArrays = {
+        "love-table-normal": 
+            Object.keys(ratings).sort((a,b) => {
+                return ratings[b].zAvg - ratings[a].zAvg;
+            }).slice(0, 10),
+        "love-table-raw": 
+            Object.keys(ratings).sort((a,b) => {
+                return ratings[b].avg - ratings[a].avg;
+            }).slice(0, 10),
+        "hate-table-normal": 
+            Object.keys(ratings).sort((a,b) => {
+                return ratings[a].zAvg - ratings[b].zAvg;
+            }).slice(0, 10),
+        "hate-table-raw": 
+            Object.keys(ratings).sort((a,b) => {
+                return ratings[a].avg - ratings[b].avg;
+            }).slice(0, 10),
+        "agree-table-normal": 
+            Object.keys(ratings).sort((a,b) => {
+                return Math.abs(ratings[a].zDelta) - Math.abs(ratings[b].zDelta);
+            }).slice(0, 9),
+        "agree-table-raw": 
+            Object.keys(ratings).sort((a,b) => {
+                return Math.abs(ratings[a].delta) - Math.abs(ratings[b].delta);
+            }).slice(0, 9),
+        "disagree-table-normal":
+            Object.keys(ratings).sort((a, b) => {
+                return Math.abs(ratings[b].zDelta) - Math.abs(ratings[a].zDelta);
+            }).slice(0, 9),
+        "disagree-table-raw":
+            Object.keys(ratings).sort((a, b) => {
+                return Math.abs(ratings[b].delta) - Math.abs(ratings[a].delta);
+            }).slice(0, 9)
+    }
 
-    fillStatTable(sortZAvgDesc, "#love-table tbody");
-    fillStatTable(sortZAvgAsc, "#hate-table tbody");
-    fillStatTable(sortZDeltaAsc, "#agree-table tbody");
-    fillStatTable(sortZDeltaDesc, "#disagree-table tbody");
+    const statTables = document.querySelectorAll("#extra-stats .sub-table-container");
+    statTables.forEach(container => {
+        var radioButtons = container.querySelectorAll(".custom-radio input");
+        var table = container.querySelector("table");
+
+        radioButtons.forEach(button => {
+            var statName = table.id + "-" + button.value; // References statsArrays values
+            // Fill in table for any default checked values
+            if(button.checked) {
+                fillStatTable(statsArrays[statName], table.querySelector("tbody"));
+            }
+            // When button is checked, fill table
+            button.addEventListener("change", e => {
+                fillStatTable(statsArrays[statName], table.querySelector("tbody"));
+            })
+        })
+    })
 }
 
-function fillStatTable(array, tableSelector) {
-    var table = document.querySelector(tableSelector);
-    for(let i = 0; i < 10 && i < array.length; i++) {
-        table.insertRow().insertCell().innerHTML = array[i];
-    }
+function fillStatTable(array, table) {
+    table.innerHTML = "";
+    array.forEach(element => {
+        table.insertRow().insertCell().innerHTML = element;
+    })
 }
