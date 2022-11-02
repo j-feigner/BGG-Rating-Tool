@@ -4,11 +4,10 @@ function main() {
     var input1 = document.getElementById("user1");
     var input2 = document.getElementById("user2");
     var submit = document.getElementById("submit");
-
     var lastUsers = ["", ""];
 
     submit.addEventListener("click", e => {
-        var users = [input1.value, input2.value];
+        const users = [input1.value, input2.value];
 
         // Check if user fields have changed
         if(users[0] === lastUsers[0] && users[1] === lastUsers[1]) {
@@ -17,16 +16,11 @@ function main() {
             lastUsers = users;
         }
 
-        var messageOutput = document.querySelector("#message-block");
-        var statOutput = document.querySelector("#stats-block");
         // If second input is blank, compare user ratings to average
         if(users[1] == "") {
             checkValidBGGUser(users[0])
             .then(user => {
-                fillMainTableUsers(user, "Geek");
-                messageOutput.style.maxHeight = "0px";
-                statOutput.style.maxHeight = "0px";
-                toggleLoading();
+                prepareOutput(user, "Geek");
                 compareAverage(user);
             })
             .catch(error => {
@@ -36,10 +30,7 @@ function main() {
         } else {
             Promise.all(users.map(user => checkValidBGGUser(user)))
             .then(users => {
-                fillMainTableUsers(users[0], users[1]);
-                messageOutput.style.maxHeight = "0px";
-                statOutput.style.maxHeight = "0px";
-                toggleLoading();
+                prepareOutput(users[0], users[1]);
                 compareUsers(users);
             })
             .catch(error => {
@@ -49,8 +40,8 @@ function main() {
     })
 }
 
-// Attempts to fetch BGG user data
-// If user exits
+// Returns a Promise that resolves to a valid BGG username string
+// If username parameter does not exist in the BGG database, error is thrown
 function checkValidBGGUser(username) {
     return fetch("https://boardgamegeek.com/xmlapi2/user?name=" + username)
     .then(response => response.text())
@@ -131,7 +122,7 @@ function mergeRatings(user1, user2) {
     return output;
 }
 
-// Parses Geek Average ratings object to standardized user format {game: {user: rating},...}
+// Parses Geek Average ratings object to standardized user format for later merging
 // Also drops any games with insufficient geek rating (geek == 0)
 function filterGeek(ratings) {
     var output = {};
@@ -147,6 +138,7 @@ function filterGeek(ratings) {
     return output;
 }
 
+// Computes and appends z-scores for all user ratings
 function addZValues(userRatings) {
     var list = Object.values(userRatings).map(rating => rating.user);
     var avg = mean(list);
@@ -158,7 +150,7 @@ function addZValues(userRatings) {
     }
 }
 
-// Populates output table with all rating values in ratings object
+// Populates common games output table according to fixed ratingOrder
 function fillMainTable(table, ratings) {
     table.innerHTML = "";
     for(game in ratings) {
@@ -206,8 +198,8 @@ function compareAverage(user) {
     })
 }
 
-// Expects merged ratings object or user+geek object depending on mode
-// Calculates coefficient, adds deltas, and outputs to table
+// Expects merged ratings object
+// Calculates coefficient and outputs message according to mode 
 function outputRatings(ratings, mode) {
     // Get correlation coefficient
     var l1 = Object.values(ratings).map(ratingSet => ratingSet.rating1);
@@ -215,7 +207,7 @@ function outputRatings(ratings, mode) {
     var r = pearsonCorrelation(l1, l2);
     var s = spearmanCorrelation(l1, l2);
 
-    // Set color of output block
+    // Set color of message block
     var output = document.querySelector("#main-output");
     output.className = "";
     if(r <= -0.25) {
@@ -234,10 +226,12 @@ function outputRatings(ratings, mode) {
     output.querySelector("#r-output").innerHTML = "r = " + r.toFixed(3); 
     output.querySelector("#s-output").innerHTML = "&rho; = " + s.toFixed(3);
 
-    // Load correlation message and output to main block
+    // Load correlation message and output to message block
     getCorrelationMessage(Math.max(r, s), mode)
     .then(msg => {
         output.querySelector("#strength-description").innerHTML = msg;
+
+        // Set max-height on output blocks for smooth animation
         var messageOutput = document.querySelector("#message-block");
         messageOutput.style.maxHeight = messageOutput.scrollHeight + "px";
         var statOutput = document.querySelector("#stats-block");
@@ -245,7 +239,7 @@ function outputRatings(ratings, mode) {
     });
 }
 
-// Toggles appropriate classes for loading elements to show/hide
+// Toggles appropriate classes for showing/hiding loading animations
 function toggleLoading() {
     var reminderElement = document.querySelector("#loading-reminder");
     var submitText = document.querySelector("#submit span");
@@ -294,9 +288,10 @@ function getCorrelationMessage(coefficient, option) {
     })
 }
 
+// Calculates and outputs bonus stats for merged data set
 function extraStats(ratings) {
-    // Sorted and sliced arrays of game names according to extra stat sub-tables
-    // Object property names reflect DOM stat tables for dynamic insertion
+    // Sorted and sliced arrays of game names according to bonus stat sub-tables
+    // Object property names reflect DOM stat table IDs
     const statsArrays = {
         "love-table-normal": 
             Object.keys(ratings).sort((a,b) => {
@@ -358,14 +353,17 @@ function fillStatTable(array, table) {
     })
 }
 
-function fillMainTableUsers(user1, user2) {
+// Prepares output section for data display and toggle loading
+function prepareOutput(user1, user2) {
+    // Hide output blocks
+    var messageOutput = document.querySelector("#message-block");
+    var statOutput = document.querySelector("#stats-block");
+    messageOutput.style.maxHeight = "0px";
+    statOutput.style.maxHeight = "0px";
+
+    // Fill common games table with usernames
     document.querySelector("#rating1-th").innerHTML = user1;
     document.querySelector("#rating2-th").innerHTML = user2;
-}
 
-function setFixedTableHeader() {
-    var wrap = document.querySelector(".site-wrapper");
-    wrap.addEventListener("scroll", e => {
-        
-    })
+    toggleLoading();
 }

@@ -14,15 +14,15 @@ function mean(array) {
 
 // Returns standard deviation from given array of numbers
 function stdDev(array, type = "sample") {
-    var arr_mean = mean(array);
-    var spread = array.map(val => Math.pow(val - arr_mean, 2));
-    var spread_sum = sum(spread);
+    var arrMean = mean(array);
+    var spread = array.map(val => Math.pow(val - arrMean, 2));
+    var spreadSum = sum(spread);
     if(type === "population") {
         var denom = array.length;
     } else if(type === "sample") {
         var denom = array.length - 1;
     }
-    return Math.sqrt(spread_sum / denom)
+    return Math.sqrt(spreadSum / denom)
 }
 
 // Returns covariance of two variables
