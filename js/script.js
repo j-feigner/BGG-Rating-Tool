@@ -1,11 +1,8 @@
-var REQUEST_MAX = 10;
-
 window.onload = main;
-
-var LOADING_STRING = "Fetching rating data. This can take some time with large collections...";
 
 var table = document.querySelector("#games-table tbody");
 
+var outputBlock = document.querySelector(".output-block");
 var output = document.querySelector("#main-output");
 
 function main() {
@@ -132,29 +129,20 @@ function mergeRatings(user1, user2) {
     return output;
 }
 
-// Parses Geek Average ratings object to standardized format {game: {rating1: , rating2: }}
-// and drops any games with insufficient geek rating (geek == 0)
+// Parses Geek Average ratings object to standardized user format {game: {user: rating},...}
+// Also drops any games with insufficient geek rating (geek == 0)
 function filterGeek(ratings) {
     var output = {};
     for(game in ratings) {
-        // Skip any games with a 0 geek rating
-        if(ratings[game].geek == 0) {
+        // Skip any game with a 0 geek rating
+        if(ratings[game].geek === 0) {
             continue;
         }
         output[game] = {
-            "rating1": ratings[game].user,
-            "rating2": ratings[game].geek
+            "user": ratings[game].geek
         }
     }
     return output;
-}
-
-// Appends delta value to standardized ratings object
-function addDeltas(ratings) {
-    for(game in ratings) {
-        var delta = ratings[game].rating1 - ratings[game].rating2;
-        ratings[game]["delta"] = delta;
-    }
 }
 
 function addZValues(userRatings) {
@@ -197,8 +185,8 @@ function compareUsers(users) {
     // Calculate correlation coefficient from ratings data
     .then(ratingsData => {
         ratingsData.map(ratingSet => addZValues(ratingSet));
-        var merged_ratings = mergeRatings(ratingsData[0], ratingsData[1]);
-        outputRatings(merged_ratings, "userCompare");
+        var mergedRatings = mergeRatings(ratingsData[0], ratingsData[1]);
+        outputRatings(mergedRatings, "userCompare");
     })
 }
 
@@ -207,13 +195,19 @@ function compareAverage(user) {
     .then(xmlDataSet => {
         toggleLoading();
         var ratings = parseCollection(xmlDataSet, ["user", "geek"]);
-        outputRatings(filterGeek(ratings), "geekCompare");
+        var filteredGeekRatings = filterGeek(ratings);
+        addZValues(ratings);
+        addZValues(filteredGeekRatings);
+        var mergedRatings = mergeRatings(ratings, filteredGeekRatings);
+        outputRatings(mergedRatings, "geekCompare");
     })
 }
 
 // Expects merged ratings object or user+geek object depending on mode
 // Calculates coefficient, adds deltas, and outputs to table
 function outputRatings(ratings, mode) {
+    document.querySelector(".output-block").classList.remove("hidden");
+
     // Get correlation coefficient
     var l1 = Object.values(ratings).map(ratingSet => ratingSet.rating1);
     var l2 = Object.values(ratings).map(ratingSet => ratingSet.rating2);
@@ -239,9 +233,9 @@ function outputRatings(ratings, mode) {
     // Output to tables
     extraStats(ratings);
     fillMainTable(table, ratings);
-    output.querySelector("#common-games").innerHTML = Object.keys(ratings).length + " games";
+    output.querySelector("#common-games").innerHTML = Object.keys(ratings).length + " common games";
     output.querySelector("#r-output").innerHTML = "r = " + r.toFixed(3); 
-    output.querySelector("#s-output").innerHTML = "s = " + s.toFixed(3); 
+    output.querySelector("#s-output").innerHTML = "r<sub>s</sub> = " + s.toFixed(3); 
 }
 
 // Toggles appropriate classes for loading elements to show/hide

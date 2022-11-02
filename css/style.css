@@ -171,6 +171,18 @@ input, button {
     font-family: 'Roboto', sans-serif;
 }
 
+#output-container {
+    position: relative;
+}
+
+.output-block.hide {
+    animation: slide-up 2s ease forwards;
+}
+
+.output-block.show {
+    animation: slide-down 2s ease forwards;
+}
+
 #main-output {
     position: relative;
     display: flex;
@@ -180,7 +192,8 @@ input, button {
     background-color: rgb(31, 150, 56);
     text-align: center;
     min-height: 200px;
-    padding: 20px;
+    padding: 30px;
+    gap: 20px;
 }
 
 #main-output.positive {
@@ -204,6 +217,18 @@ input, button {
     margin: 0px;
 }
 
+#coefficient-output {
+    display: flex;
+    flex-direction: row;
+    gap: 50px;
+}
+
+.games-table-container {
+    overflow: auto;
+}
+
+/* Table Output Section */
+
 #stats-output {
     display: flex;
     flex-direction: row;
@@ -217,14 +242,11 @@ input, button {
 
 #games-table,
 #extra-stats table {
-    max-width: 700px;
+    max-width: 100%;
+    table-layout: fixed;
     border-collapse: collapse;
     border-radius: 4px;
     overflow: hidden;
-}
-
-#extra-stats table {
-    width: 300px;
 }
 
 tr:nth-child(odd) {
@@ -267,8 +289,15 @@ tr:hover{
 
 .sub-table-container {
     display: flex;
+    flex-direction: column;
+}
+
+.sub-table-header {
+    display: flex;
     flex-direction: row;
-    align-items: flex-start;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
 }
 
 /* Custom Radio Select */
@@ -276,7 +305,7 @@ tr:hover{
     position: relative;
     width: 110px;
     height: 1.5em;
-    padding: 5px;
+    padding: 3px 0px 3px 0px;
     cursor: pointer;
 }
 
@@ -376,6 +405,24 @@ footer {
 }
 
 /* Animations */
+
+@keyframes slide-down {
+    from {
+        top: -2000px;
+    } 
+    to {
+        top: 0px;
+    }
+}
+
+@keyframes slide-up {
+    from {
+        top: 0px;
+    } 
+    to {
+        top: -2000px;
+    }
+}
 
 @keyframes fade-in {
     from {
