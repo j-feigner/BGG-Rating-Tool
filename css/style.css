@@ -44,7 +44,7 @@ input, button {
 }
 
 /* Header / Input Block */
-.input-block {
+#input-block {
     position: relative;
     text-align: center;
     background: linear-gradient(50deg, rgb(21, 39, 100), rgb(88, 14, 14));
@@ -52,10 +52,6 @@ input, button {
     box-shadow: 0px 0px 15px 5px rgba(0, 0, 0, 0.61);
     transition: .5s;
     z-index: 100;
-}
-
-.input-block.expanded {
-    transform: scaleY(1.1);
 }
 
 .input-flex-container {
@@ -165,13 +161,13 @@ input, button {
 }
 
 /* Output Section */
-.output-block {
+#message-block {
     position: relative;
     z-index: 99;
     font-family: 'Roboto', sans-serif;
     max-height: 0px;
-    transition: 2s ease-out;
     overflow: hidden;
+    transition: max-height 1s;
 }
 
 #main-output {
@@ -182,7 +178,6 @@ input, button {
     align-items: center;
     background-color: rgb(31, 150, 56);
     text-align: center;
-    min-height: 200px;
     padding: 30px;
     gap: 20px;
 }
@@ -214,11 +209,13 @@ input, button {
     gap: 50px;
 }
 
-.games-table-container {
-    overflow: auto;
-}
-
 /* Table Output Section */
+#stats-block {
+    max-height: 0px;
+    overflow: hidden;
+    transition: max-height 2s ease-in-out;
+    font-family: 'Roboto', sans-serif;
+}
 
 #stats-output {
     display: flex;
@@ -233,11 +230,24 @@ input, button {
 
 #games-table,
 #extra-stats table {
+    position: relative;
     max-width: 100%;
-    table-layout: fixed;
     border-collapse: collapse;
     border-radius: 4px;
-    overflow: hidden;
+}
+
+.games-table-container {
+    overflow: auto;
+}
+
+#games-table-overflow {
+    overflow: auto;
+    max-height: 1740px;
+}
+
+#games-table th {
+    position: sticky;
+    top: 0px;
 }
 
 tr:nth-child(odd) {
@@ -436,5 +446,5 @@ footer {
 /* General Classes */
 
 .hidden{
-    display: none;
+    display: none !important;
 }

@@ -17,12 +17,15 @@ function main() {
             lastUsers = users;
         }
 
-        var outputBlock = document.querySelector(".output-block");
+        var messageOutput = document.querySelector("#message-block");
+        var statOutput = document.querySelector("#stats-block");
         // If second input is blank, compare user ratings to average
         if(users[1] == "") {
             checkValidBGGUser(users[0])
             .then(user => {
-                outputBlock.style.maxHeight = "0px";
+                fillMainTableUsers(user, "Geek");
+                messageOutput.style.maxHeight = "0px";
+                statOutput.style.maxHeight = "0px";
                 toggleLoading();
                 compareAverage(user);
             })
@@ -33,7 +36,9 @@ function main() {
         } else {
             Promise.all(users.map(user => checkValidBGGUser(user)))
             .then(users => {
-                outputBlock.style.maxHeight = "0px";
+                fillMainTableUsers(users[0], users[1]);
+                messageOutput.style.maxHeight = "0px";
+                statOutput.style.maxHeight = "0px";
                 toggleLoading();
                 compareUsers(users);
             })
@@ -233,9 +238,10 @@ function outputRatings(ratings, mode) {
     getCorrelationMessage(Math.max(r, s), mode)
     .then(msg => {
         output.querySelector("#strength-description").innerHTML = msg;
-        var outputBlock = document.querySelector(".output-block");
-        var height = outputBlock.scrollHeight;
-        outputBlock.style.maxHeight = height + "px";
+        var messageOutput = document.querySelector("#message-block");
+        messageOutput.style.maxHeight = messageOutput.scrollHeight + "px";
+        var statOutput = document.querySelector("#stats-block");
+        statOutput.style.maxHeight = statOutput.scrollHeight + "px";
     });
 }
 
@@ -349,5 +355,17 @@ function fillStatTable(array, table) {
     table.innerHTML = "";
     array.forEach(element => {
         table.insertRow().insertCell().innerHTML = element;
+    })
+}
+
+function fillMainTableUsers(user1, user2) {
+    document.querySelector("#rating1-th").innerHTML = user1;
+    document.querySelector("#rating2-th").innerHTML = user2;
+}
+
+function setFixedTableHeader() {
+    var wrap = document.querySelector(".site-wrapper");
+    wrap.addEventListener("scroll", e => {
+        
     })
 }
