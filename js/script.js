@@ -22,11 +22,11 @@ function main() {
             lastUsers = users;
         }
 
-        table.innerHTML = "";
         // If second input is blank, compare user ratings to average
         if(users[1] == "") {
             checkValidBGGUser(users[0])
             .then(user => {
+                outputBlock.style.maxHeight = "0px";
                 toggleLoading();
                 compareAverage(user);
             })
@@ -37,6 +37,7 @@ function main() {
         } else {
             Promise.all(users.map(user => checkValidBGGUser(user)))
             .then(users => {
+                outputBlock.style.maxHeight = "0px";
                 toggleLoading();
                 compareUsers(users);
             })
@@ -158,6 +159,7 @@ function addZValues(userRatings) {
 
 // Populates output table with all rating values in ratings object
 function fillMainTable(table, ratings) {
+    table.innerHTML = "";
     for(game in ratings) {
         var row = table.insertRow();
         row.insertCell().innerHTML = game;
@@ -206,8 +208,6 @@ function compareAverage(user) {
 // Expects merged ratings object or user+geek object depending on mode
 // Calculates coefficient, adds deltas, and outputs to table
 function outputRatings(ratings, mode) {
-    document.querySelector(".output-block").classList.remove("hidden");
-
     // Get correlation coefficient
     var l1 = Object.values(ratings).map(ratingSet => ratingSet.rating1);
     var l2 = Object.values(ratings).map(ratingSet => ratingSet.rating2);
@@ -216,26 +216,29 @@ function outputRatings(ratings, mode) {
 
     // Set color of output block
     output.className = "";
-    if(r <= -0.2) {
+    if(r <= -0.25) {
         output.classList.add("negative");
-    } else if (r >= 0.2) {
+    } else if (r >= 0.25) {
         output.classList.add("positive");
     } else {
         output.classList.add("neutral");
     }
-
-    // Modify ratings object
-    getCorrelationMessage(Math.max(r, s), mode)
-    .then(msg => {
-        output.querySelector("#strength-description").innerHTML = msg;
-    });
 
     // Output to tables
     extraStats(ratings);
     fillMainTable(table, ratings);
     output.querySelector("#common-games").innerHTML = Object.keys(ratings).length + " common games";
     output.querySelector("#r-output").innerHTML = "r = " + r.toFixed(3); 
-    output.querySelector("#s-output").innerHTML = "r<sub>s</sub> = " + s.toFixed(3); 
+    output.querySelector("#s-output").innerHTML = "r<sub>s</sub> = " + s.toFixed(3);
+
+    // Load correlation message and output to main block
+    getCorrelationMessage(Math.max(r, s), mode)
+    .then(msg => {
+        output.querySelector("#strength-description").innerHTML = msg;
+        var outputBlock = document.querySelector(".output-block");
+        var height = outputBlock.scrollHeight;
+        outputBlock.style.maxHeight = height + "px";
+    });
 }
 
 // Toggles appropriate classes for loading elements to show/hide
@@ -266,13 +269,13 @@ function getCorrelationMessage(coefficient, option) {
         if(coefficient >= -0.65 && coefficient < -0.45) {
             return msgs[option].negativeModerate;
         }
-        if(coefficient >= -0.45 && coefficient < -0.20) {
+        if(coefficient >= -0.45 && coefficient < -0.25) {
             return msgs[option].negativeMild;
         }
-        if(coefficient > -0.20 && coefficient < 0.20) {
+        if(coefficient > -0.25 && coefficient < 0.25) {
             return msgs[option].noCorrelation;
         }
-        if(coefficient >= 0.20 && coefficient < 0.45) {
+        if(coefficient >= 0.25 && coefficient < 0.45) {
             return msgs[option].positiveMild;
         }
         if(coefficient >= 0.45 && coefficient < 0.65) {
@@ -310,19 +313,19 @@ function extraStats(ratings) {
         "agree-table-normal": 
             Object.keys(ratings).sort((a,b) => {
                 return Math.abs(ratings[a].zDelta) - Math.abs(ratings[b].zDelta);
-            }).slice(0, 9),
+            }).slice(0, 10),
         "agree-table-raw": 
             Object.keys(ratings).sort((a,b) => {
                 return Math.abs(ratings[a].delta) - Math.abs(ratings[b].delta);
-            }).slice(0, 9),
+            }).slice(0, 10),
         "disagree-table-normal":
             Object.keys(ratings).sort((a, b) => {
                 return Math.abs(ratings[b].zDelta) - Math.abs(ratings[a].zDelta);
-            }).slice(0, 9),
+            }).slice(0, 10),
         "disagree-table-raw":
             Object.keys(ratings).sort((a, b) => {
                 return Math.abs(ratings[b].delta) - Math.abs(ratings[a].delta);
-            }).slice(0, 9)
+            }).slice(0, 10)
     }
 
     const statTables = document.querySelectorAll("#extra-stats .sub-table-container");

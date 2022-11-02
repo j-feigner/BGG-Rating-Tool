@@ -39,131 +39,129 @@
                 </div>
             </div>
             <div class="output-block">
-                <div id="output-container" class="">
-                    <div id="main-output">
-                        <h3 id="strength-description"></h3>
-                        <div id="coefficient-output">
-                            <h2 id="r-output"></h2>
-                            <h2 id="s-output"></h2>
-                        </div>
-                        <i><h5 id="common-games"></h5></i>
+                <div id="main-output">
+                    <h3 id="strength-description"></h3>
+                    <div id="coefficient-output">
+                        <h2 id="r-output"></h2>
+                        <h2 id="s-output"></h2>
                     </div>
-                    <div id="stats-output">
-                        <div class="games-table-container">
-                            <h4>All Common Games</h4>
-                            <table id="games-table">
+                    <i><h5 id="common-games"></h5></i>
+                </div>
+                <div id="stats-output">
+                    <div class="games-table-container">
+                        <h4>All Common Games</h4>
+                        <table id="games-table">
+                            <thead>
+                                <tr class="table-headers">
+                                    <th scope="col" id="game-th">Game</th>
+                                    <th scope="col" id="rating1-th">User 1</th>
+                                    <th scope="col" id="rating2-th">User 2</th>
+                                    <th scope="col" id="delta-th">Delta</th>
+                                    <th scope="col" id="z-delta-th">z Delta</th>
+                                    <th scope="col" id="avg-th">Avg.</th>
+                                    <th scope="col" id="z-avg-th">z Avg.</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="extra-stats">
+                        <div class="sub-table-container">
+                            <div class="sub-table-header">
+                                <h5>Games you both love</h5>
+                                <div class="sub-table-options">
+                                    <div class="custom-radio">
+                                        <input type="radio" name="love-option" value="normal" id="love-normal-input" checked="checked">
+                                        <label for="love-normal-input">Normalized</label>
+                                    </div>
+                                    <div class="custom-radio">
+                                        <input type="radio" name="love-option" value="raw" id="love-raw-input">
+                                        <label for="love-raw-input">Raw</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <table id="love-table">
                                 <thead>
-                                    <tr class="table-headers">
-                                        <th scope="col" id="game-th">Game</th>
-                                        <th scope="col" id="rating1-th">User #1</th>
-                                        <th scope="col" id="rating2-th">User #2</th>
-                                        <th scope="col" id="delta-th">Delta</th>
-                                        <th scope="col" id="z-delta-th">z Delta</th>
-                                        <th scope="col" id="avg-th">Avg.</th>
-                                        <th scope="col" id="z-avg-th">z Avg.</th>
+                                    <tr>
+                                        <th scope="col">Game</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                 </tbody>
                             </table>
                         </div>
-                        <div id="extra-stats">
-                            <div class="sub-table-container">
-                                <div class="sub-table-header">
-                                    <h5>Games you both love</h5>
-                                    <div class="sub-table-options">
-                                        <div class="custom-radio">
-                                            <input type="radio" name="love-option" value="normal" id="love-normal-input" checked="checked">
-                                            <label for="love-normal-input">Normalized</label>
-                                        </div>
-                                        <div class="custom-radio">
-                                            <input type="radio" name="love-option" value="raw" id="love-raw-input">
-                                            <label for="love-raw-input">Raw</label>
-                                        </div>
+                        <div class="sub-table-container">
+                            <div class="sub-table-header">
+                                <h5>Games you both don't love</h5>
+                                <div class="sub-table-options">
+                                    <div class="custom-radio">
+                                        <input type="radio" name="hate-option" value="normal" id="hate-normal-input" checked="checked">
+                                        <label for="hate-normal-input">Normalized</label>
+                                    </div>
+                                    <div class="custom-radio">
+                                        <input type="radio" name="hate-option" value="raw" id="hate-raw-input">
+                                        <label for="hate-raw-input">Raw</label>
                                     </div>
                                 </div>
-                                <table id="love-table">
-                                    <thead>
-                                        <tr>
-                                            <th scope="col">Game</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                    </tbody>
-                                </table>
                             </div>
-                            <div class="sub-table-container">
-                                <div class="sub-table-header">
-                                    <h5>Games you both don't love</h5>
-                                    <div class="sub-table-options">
-                                        <div class="custom-radio">
-                                            <input type="radio" name="hate-option" value="normal" id="hate-normal-input" checked="checked">
-                                            <label for="hate-normal-input">Normalized</label>
-                                        </div>
-                                        <div class="custom-radio">
-                                            <input type="radio" name="hate-option" value="raw" id="hate-raw-input">
-                                            <label for="hate-raw-input">Raw</label>
-                                        </div>
+                            <table id="hate-table">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Game</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="sub-table-container">
+                            <div class="sub-table-header">
+                                <h5>Games you agree about</h5>
+                                <div class="sub-table-options">
+                                    <div class="custom-radio">
+                                        <input type="radio" name="agree-option" value="normal" id="agree-normal-input" checked="checked">
+                                        <label for="agree-normal-input">Normalized</label>
+                                    </div>
+                                    <div class="custom-radio">
+                                        <input type="radio" name="agree-option" value="raw" id="agree-raw-input">
+                                        <label for="agree-raw-input">Raw</label>
                                     </div>
                                 </div>
-                                <table id="hate-table">
-                                    <thead>
-                                        <tr>
-                                            <th scope="col">Game</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                    </tbody>
-                                </table>
                             </div>
-                            <div class="sub-table-container">
-                                <div class="sub-table-header">
-                                    <h5>Games you agree about</h5>
-                                    <div class="sub-table-options">
-                                        <div class="custom-radio">
-                                            <input type="radio" name="agree-option" value="normal" id="agree-normal-input" checked="checked">
-                                            <label for="agree-normal-input">Normalized</label>
-                                        </div>
-                                        <div class="custom-radio">
-                                            <input type="radio" name="agree-option" value="raw" id="agree-raw-input">
-                                            <label for="agree-raw-input">Raw</label>
-                                        </div>
+                            <table id="agree-table">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Game</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="sub-table-container">
+                            <div class="sub-table-header">
+                                <h5>Games you disagree about</h5>
+                                <div class="sub-table-options">
+                                    <div class="custom-radio">
+                                        <input type="radio" name="disagree-option" value="normal" id="disagree-normal-input" checked="checked">
+                                        <label for="disagree-normal-input">Normalized</label>
+                                    </div>
+                                    <div class="custom-radio">
+                                        <input type="radio" name="disagree-option" value="raw" id="disagree-raw-input">
+                                        <label for="disagree-raw-input">Raw</label>
                                     </div>
                                 </div>
-                                <table id="agree-table">
-                                    <thead>
-                                        <tr>
-                                            <th scope="col">Game</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                    </tbody>
-                                </table>
                             </div>
-                            <div class="sub-table-container">
-                                <div class="sub-table-header">
-                                    <h5>Games you disagree about</h5>
-                                    <div class="sub-table-options">
-                                        <div class="custom-radio">
-                                            <input type="radio" name="disagree-option" value="normal" id="disagree-normal-input" checked="checked">
-                                            <label for="disagree-normal-input">Normalized</label>
-                                        </div>
-                                        <div class="custom-radio">
-                                            <input type="radio" name="disagree-option" value="raw" id="disagree-raw-input">
-                                            <label for="disagree-raw-input">Raw</label>
-                                        </div>
-                                    </div>
-                                </div>
-                                <table id="disagree-table">
-                                    <thead>
-                                        <tr>
-                                            <th scope="col">Game</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                    </tbody>
-                                </table>
-                            </div>
+                            <table id="disagree-table">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Game</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
