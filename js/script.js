@@ -229,7 +229,7 @@ function outputRatings(ratings, mode) {
     fillMainTable(table, ratings);
     output.querySelector("#common-games").innerHTML = Object.keys(ratings).length + " common games";
     output.querySelector("#r-output").innerHTML = "r = " + r.toFixed(3); 
-    output.querySelector("#s-output").innerHTML = "r<sub>s</sub> = " + s.toFixed(3);
+    output.querySelector("#s-output").innerHTML = "&rho; = " + s.toFixed(3);
 
     // Load correlation message and output to main block
     getCorrelationMessage(Math.max(r, s), mode)
