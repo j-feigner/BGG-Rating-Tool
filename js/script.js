@@ -1,10 +1,5 @@
 window.onload = main;
 
-var table = document.querySelector("#games-table tbody");
-
-var outputBlock = document.querySelector(".output-block");
-var output = document.querySelector("#main-output");
-
 function main() {
     var input1 = document.getElementById("user1");
     var input2 = document.getElementById("user2");
@@ -22,6 +17,7 @@ function main() {
             lastUsers = users;
         }
 
+        var outputBlock = document.querySelector(".output-block");
         // If second input is blank, compare user ratings to average
         if(users[1] == "") {
             checkValidBGGUser(users[0])
@@ -215,6 +211,7 @@ function outputRatings(ratings, mode) {
     var s = spearmanCorrelation(l1, l2);
 
     // Set color of output block
+    var output = document.querySelector("#main-output");
     output.className = "";
     if(r <= -0.25) {
         output.classList.add("negative");
@@ -225,6 +222,7 @@ function outputRatings(ratings, mode) {
     }
 
     // Output to tables
+    var table = document.querySelector("#games-table tbody");
     extraStats(ratings);
     fillMainTable(table, ratings);
     output.querySelector("#common-games").innerHTML = Object.keys(ratings).length + " common games";
