@@ -7,11 +7,13 @@ html, body, .site-wrapper {
 }
 
 .site-wrapper {
+    position: relative;
     display: block;
     overflow: auto;
     background-color: rgb(230, 230, 230);
     color: white;
     font-family: 'Raleway', Arial, sans-serif;
+    min-height: 100%;
 }
 
 /* Font-Sizing */
